@@ -50,18 +50,28 @@ func DelTree(name string) {
 	os.Remove(path)
 }
 
-func AddSubTree(tree Tree, name string) {
+func NewSubTree(tree *Tree, name string) {
+	tree.SubTrees = append(tree.SubTrees, NewTree(name))
+}
+
+func AddSubTree(tree *Tree, subtree *Tree) {
+	tree.SubTrees = append(tree.SubTrees, subtree)
+}
+
+func DelSubTree(tree *Tree, name string) {
+	list := []*Tree{}
+	for _, subtree := range tree.SubTrees {
+		if subtree.Name != name {
+			list = append(list, subtree)
+		}
+	}
+	tree.SubTrees = list
+}
+
+func AddNode(tree *Tree, node Node) {
 
 }
 
-func DelSubTree(tree Tree, name string) {
-
-}
-
-func AddNode(tree Tree, node Node) {
-
-}
-
-func DelNode(tree Tree, node Node) {
+func DelNode(tree *Tree, node Node) {
 
 }

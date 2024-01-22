@@ -39,6 +39,14 @@ func isInList(str string, slice []string) bool {
 	return false
 }
 
+func NewTree(name string) *Tree {
+	return &Tree{
+		Name:     name,
+		SubTrees: []*Tree{},
+		Nodes:    []Node{},
+	}
+}
+
 func GetTrees() []string {
 	fileList := []string{}
 	err := filepath.Walk(STORE_DIR, func(path string, info os.FileInfo, err error) error {
