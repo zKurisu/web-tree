@@ -1,0 +1,24 @@
+main:
+  sort: "label"
+  help:
+    hidden: false
+
+search:
+  keybinding: "<C-s>"
+  style: "None"
+
+tab:
+  keybinding: "<Tab>"
+  style:
+
+tree:
+  keybinding:
+    UP:     "k"
+    DOWN:   "j"
+    LEFT:   "h"
+    RIGHT:  "l"
+    OPEN:   "o"
+    ADD:    "a"
+    DELETE: "d"
+    EDIT:   "e"
+  style: "None"

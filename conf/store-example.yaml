@@ -1,0 +1,59 @@
+tree:
+  - name: "Linux"
+    nodes:
+      - link: 
+          - "https://www.orkarin.com"
+          - "https://www.xx.com"
+        alias:
+          - alias1
+          - alias2
+          - alias3
+        description:
+          - "desc1"
+          - "desc2"
+        icon: "ASCII/UTF8 code"
+        label: 
+          - "label1"
+          - "label2"
+        style:
+          shape:
+          color:
+    subtrees:
+      - name: "Arch"
+        subtree:
+  - nodes:
+    - link: 
+        - "https://www.orkarin.com"
+        - "https://www.xx.com"
+      alias:
+        - alias1
+        - alias2
+        - alias3
+      description:
+        - "desc1"
+        - "desc2"
+      icon: "ASCII/UTF8 code"
+      label: 
+        - "label1"
+        - "label2"
+      style:
+        shape:
+        color:
+    - link: 
+        - "https://www.orkarin.com"
+        - "https://www.xx.com"
+      alias:
+        - alias1
+        - alias2
+        - alias3
+      description:
+        - "desc1"
+        - "desc2"
+      icon: "ASCII/UTF8 code"
+      label: 
+        - "label1"
+        - "label2"
+      style:
+        shape:
+        color:
+
