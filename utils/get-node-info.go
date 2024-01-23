@@ -1,25 +1,25 @@
 package utils
 
-func GetNodeLinks(node Node) []string {
+func (node Node) GetNodeLinks() []string {
 	return node.Link
 }
 
-func GetNodeAlias(node Node) []string {
+func (node Node) GetNodeAlias() []string {
 	return node.Alias
 }
 
-func GetNodeDesc(node Node) []string {
+func (node Node) GetNodeDesc() []string {
 	return node.Desc
 }
 
-func GetNodeIcon(node Node) string {
+func (node Node) GetNodeIcon() string {
 	return node.Icon
 }
 
-func GetNodeLabels(node Node) []string {
+func (node Node) GetNodeLabels() []string {
 	return node.Label
 }
 
-func GetNodeStyle(node Node) interface{} {
+func (node Node) GetNodeStyle() interface{} {
 	return node.Style
 }

@@ -1,16 +1,16 @@
 package utils
 
-func GetTreeName(tree Tree) string {
+func (tree Tree) GetTreeName() string {
 	return tree.Name
 }
 
-func GetSubtrees(tree Tree) []*Tree {
+func (tree Tree) GetAllSubtree() []*Tree {
 	return tree.SubTrees
 }
 
-func GetSubtreesName(tree Tree) []string {
+func (tree Tree) GetSubtreesName() []string {
 	list := []string{}
-	for _, subtree := range GetSubtrees(tree) {
+	for _, subtree := range tree.GetAllSubtree() {
 		if subtree.Name != "" {
 			list = append(list, subtree.Name)
 		}
@@ -18,14 +18,6 @@ func GetSubtreesName(tree Tree) []string {
 	return list
 }
 
-func GetNodes(tree Tree) []Node {
+func (tree Tree) GetNodes() []*Node {
 	return tree.Nodes
-}
-
-func IsTreeExist(name string) bool {
-	if isInList(name, GetTrees()) {
-		return true
-	} else {
-		return false
-	}
 }

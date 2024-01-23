@@ -9,6 +9,7 @@ import (
 	"web-tree/conf"
 )
 
+var AllRootTree = getAllRootTree()
 var STORE_DIR = conf.GetStoreDir()
 
 type Node struct {
@@ -23,39 +24,45 @@ type Node struct {
 type Tree struct {
 	Name     string  `yaml:"name"`
 	SubTrees []*Tree `yaml:"tree"`
-	Nodes    []Node  `yaml:"nodes"`
+	Nodes    []*Node `yaml:"nodes"`
 }
-
 type Store struct {
 	Trees []Tree
-}
-
-func isInList(str string, slice []string) bool {
-	for _, s := range slice {
-		if str == s {
-			return true
-		}
-	}
-	return false
 }
 
 func NewTree(name string) *Tree {
 	return &Tree{
 		Name:     name,
 		SubTrees: []*Tree{},
-		Nodes:    []Node{},
+		Nodes:    []*Node{},
 	}
 }
 
-func GetTrees() []string {
-	fileList := []string{}
+func NewNode(links []string, alias []string, desc []string, icon string, labels []string, style interface{}) *Node {
+	return &Node{
+		Link:  links,
+		Alias: alias,
+		Desc:  desc,
+		Icon:  icon,
+		Label: labels,
+		Style: style,
+	}
+}
+
+func GetAllTreeName() []string {
+	list := []string{}
+	pattern := regexp.QuoteMeta(`.yaml`)
+	re := regexp.MustCompile(pattern + `$`)
+
 	err := filepath.Walk(STORE_DIR, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		if !info.IsDir() {
-			fileList = append(fileList, RemoveFileExtention(info.Name()))
+			if re.MatchString(info.Name()) {
+				list = append(list, RemoveFileExtention(info.Name()))
+			}
 		}
 		return nil
 	})
@@ -63,15 +70,15 @@ func GetTrees() []string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return fileList
+	return list
 }
 
-func GetTree(name string) Tree {
-	var t Tree
-	treeList := GetTrees()
+func getTree(name string) *Tree {
+	var t *Tree
+	treeList := GetAllTreeName()
 
-	if isInList(name, treeList) {
-		treePath := filepath.Join(STORE_DIR, name)
+	if IsInList(treeList, name) {
+		treePath := filepath.Join(STORE_DIR, AddFileExtention(name))
 		yamlContent, err := os.ReadFile(treePath)
 		if err != nil {
 			log.Fatal(err)
@@ -84,17 +91,45 @@ func GetTree(name string) Tree {
 	return t
 }
 
-func GetSubTree(tree Tree, name string) []Tree {
-	list := []Tree{}
+func getAllRootTree() []*Tree {
+	list := []*Tree{}
+	for _, name := range GetAllTreeName() {
+		list = append(list, getTree(name))
+	}
+	return list
+}
+
+func GetTree(name string) *Tree {
+	if IsTreeExist(name) {
+		for _, tree := range AllRootTree {
+			if tree.Name == name {
+				return tree
+			}
+		}
+	}
+	return nil
+}
+
+func (tree Tree) FindSubTree(name string) *Tree {
+	for _, subtree := range tree.SubTrees {
+		if subtree.Name == name {
+			return subtree
+		}
+	}
+	return nil
+}
+
+func (tree Tree) FindAllSubTree(name string) []*Tree {
+	list := []*Tree{}
 	if len(tree.SubTrees) == 0 {
 		return list
 	}
 	for _, subtree := range tree.SubTrees {
 		if subtree.Name == name {
-			list = append(list, *subtree)
+			list = append(list, subtree)
 		}
 		if len(subtree.SubTrees) != 0 {
-			for _, subsubtree := range GetSubTree(*subtree, name) {
+			for _, subsubtree := range subtree.FindAllSubTree(name) {
 				list = append(list, subsubtree)
 			}
 		}
@@ -102,9 +137,30 @@ func GetSubTree(tree Tree, name string) []Tree {
 	return list
 }
 
+func (tree Tree) FindNode(hint string) *Node {
+	pattern := regexp.QuoteMeta(hint)
+	reg := regexp.MustCompile(pattern)
+
+	if len(tree.Nodes) != 0 {
+		for _, node := range tree.Nodes {
+			for _, link := range node.Link {
+				if reg.MatchString(link) {
+					return node
+				}
+			}
+			for _, alias := range node.Alias {
+				if reg.MatchString(alias) {
+					return node
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // hint means "link" or "alias"
-func GetNode(tree Tree, hint string) []Node {
-	list := []Node{}
+func (tree Tree) FindAllNode(hint string) []*Node {
+	list := []*Node{}
 	pattern := regexp.QuoteMeta(hint)
 	reg := regexp.MustCompile(pattern)
 
@@ -130,7 +186,7 @@ func GetNode(tree Tree, hint string) []Node {
 
 	if len(tree.SubTrees) != 0 {
 		for _, subtree := range tree.SubTrees {
-			for _, node := range GetNode(*subtree, hint) {
+			for _, node := range subtree.FindAllNode(hint) {
 				list = append(list, node)
 			}
 		}

@@ -49,6 +49,12 @@ func BackFile(dest string, src string) error {
 	return nil
 }
 
+func GetTreeFile(tree *Tree) string {
+	filaName := AddFileExtention(tree.Name)
+	storeDir := conf.GetStoreDir()
+	return filepath.Join(storeDir, filaName)
+}
+
 func AddFileExtention(name string) string {
 	pattern := regexp.QuoteMeta(`.yaml`)
 	re := regexp.MustCompile(pattern + "$")
