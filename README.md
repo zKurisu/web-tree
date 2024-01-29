@@ -28,6 +28,25 @@ Concept image:
     Every tree have a storage file? data 目录, 每创建一个 tree, 就添加一个文件
     Check configuration
 
+Possible TUI for it:
+- text input
+- help
+- key
+- autocomplete
+- composable-views
+- http
+- list-fancy
+- progress-animated
+- spinners
+- table
+- tabs
+- tui-daemon-combo
+
+1. Command line args
+2. Draw the outer box
+3. help, key menu
+4. text input and autocomplete for search space
+5. Add function for http testing
 # Usage
 ## Move around
 
