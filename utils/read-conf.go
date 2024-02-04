@@ -13,8 +13,9 @@ var CONFIG_PATH = conf.GetConfigPath()
 
 type Conf struct {
 	Main struct {
-		Sort string `yaml:"sort"`
-		Help struct {
+		Browser []string `yaml:"browser"`
+		Sort    string   `yaml:"sort"`
+		Help    struct {
 			Hidden bool `yaml:"hidden"`
 		} `yaml:"help"`
 	} `yaml:"main"`

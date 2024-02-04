@@ -2,6 +2,7 @@ package utils
 
 import (
 	"log"
+	"net/url"
 )
 
 // The Root tree name should be the same with
@@ -15,6 +16,11 @@ func CheckTreeName() {
 		}
 	}
 	log.Println("CheckTreeName OK")
+}
+
+func IsUrl(s string) error {
+	_, err := url.ParseRequestURI(s)
+	return err
 }
 
 func IsInList(slice []string, str string) bool {
@@ -44,10 +50,14 @@ func IsTreeExist(name string) bool {
 }
 
 func IsRootTree(tree *Tree) bool {
-	for _, v := range AllRootTree {
+	for _, v := range RootTree.GetAllSubtree() {
 		if v == tree {
 			return true
 		}
 	}
+	return false
+}
+
+func IsTreeUpdate(tree Tree) bool {
 	return false
 }

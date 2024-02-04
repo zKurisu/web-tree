@@ -9,7 +9,11 @@ import (
 	"web-tree/conf"
 )
 
-var AllRootTree = getAllRootTree()
+var RootTree = Tree{
+	Name:     "root",
+	SubTrees: getAllRootTree(),
+	Nodes:    []*Node{},
+}
 var STORE_DIR = conf.GetStoreDir()
 
 type Node struct {
@@ -101,7 +105,7 @@ func getAllRootTree() []*Tree {
 
 func GetTree(name string) *Tree {
 	if IsTreeExist(name) {
-		for _, tree := range AllRootTree {
+		for _, tree := range RootTree.GetAllSubtree() {
 			if tree.Name == name {
 				return tree
 			}

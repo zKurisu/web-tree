@@ -42,7 +42,7 @@ func (tree *Tree) WriteTree() error {
 }
 
 // Create a file under the data dir
-func AddTree(name string) {
+func addTree(name string) {
 	if name == "" {
 		log.Fatal("Can not use empty as name")
 	} else if IsInList(GetAllTreeName(), AddFileExtention(name)) {
@@ -68,7 +68,7 @@ func AddTree(name string) {
 }
 
 // Delete the file under the data dir
-func DelTree(name string) {
+func delTree(name string) {
 	Backup(name)
 	if name == "" {
 		log.Fatal("Can not use empty as name")
@@ -80,6 +80,9 @@ func DelTree(name string) {
 }
 
 func (tree *Tree) AddNewSubTree(name string) {
+	if tree.Name == "root" {
+		addTree(name)
+	}
 	tree.SubTrees = append(tree.SubTrees, NewTree(name))
 }
 
@@ -88,6 +91,9 @@ func (tree *Tree) AddSubTree(subtree *Tree) {
 }
 
 func (tree *Tree) DelSubTree(name string) {
+	if tree.Name == "root" {
+		delTree(name)
+	}
 	list := []*Tree{}
 	for _, subtree := range tree.SubTrees {
 		if subtree.Name != name {
