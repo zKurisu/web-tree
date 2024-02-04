@@ -8,6 +8,8 @@ var (
 	desc     string
 	label    string
 	browser  string
+	style    interface{}
+	icon     string
 
 	newName  string
 	newLink  string

@@ -12,8 +12,8 @@ import (
 
 // Compare to root tree list
 func (tree *Tree) WriteTree() error {
-	if !IsRootTree(tree) {
-		return errors.New("Does not root tree")
+	if IsSubTree(tree) {
+		return errors.New("It is a sub tree")
 	}
 
 	Backup(tree.Name)
@@ -38,6 +38,17 @@ func (tree *Tree) WriteTree() error {
 	}
 	defer fd.Close()
 
+	return nil
+}
+
+func WriteAll() error {
+	for _, tree := range RootTree.SubTrees {
+		if tree.IsUpdate() {
+			if err := tree.WriteTree(); err != nil {
+				return errors.New("Wrong when Write " + tree.Name)
+			}
+		}
+	}
 	return nil
 }
 
@@ -83,7 +94,21 @@ func (tree *Tree) AddNewSubTree(name string) {
 	if tree.Name == "root" {
 		addTree(name)
 	}
-	tree.SubTrees = append(tree.SubTrees, NewTree(name))
+	newTree, err := NewTree(name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	tree.SubTrees = append(tree.SubTrees, newTree)
+}
+
+func (tree *Tree) DeepAddNewSubTree(names []string) error {
+	if len(names) == 0 {
+		return nil
+	}
+	if !IsInList(tree.GetSubtreesName(), names[0]) {
+		tree.AddNewSubTree(names[0])
+	}
+	return tree.FindSubTree(names[0]).DeepAddNewSubTree(names[1:])
 }
 
 func (tree *Tree) AddSubTree(subtree *Tree) {
@@ -108,18 +133,29 @@ func (tree *Tree) AddNode(node *Node) {
 }
 
 func (tree *Tree) DelNode(name string) {
-	list := []*Node{}
+	delList := []*Node{}
 	for _, node := range tree.Nodes {
 		for _, link := range node.Link {
-			if link != name {
-				list = append(list, node)
+			if link == name {
+				delList = append(delList, node)
 			}
 		}
 		for _, alias := range node.Alias {
-			if alias != name && !IsNodeExist(list, node) {
-				list = append(list, node)
+			if alias == name && !IsNodeExist(delList, node) {
+				delList = append(delList, node)
 			}
 		}
 	}
-	tree.Nodes = list
+
+	if len(delList) == 0 {
+		log.Println("Can not find the node")
+	} else {
+		list := []*Node{}
+		for _, node := range tree.Nodes {
+			if !IsNodeExist(delList, node) {
+				list = append(list, node)
+			}
+		}
+		tree.Nodes = list
+	}
 }

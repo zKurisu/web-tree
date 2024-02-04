@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
@@ -11,9 +12,10 @@ import (
 
 var RootTree = Tree{
 	Name:     "root",
-	SubTrees: getAllRootTree(),
+	SubTrees: getAllTree(),
 	Nodes:    []*Node{},
 }
+
 var STORE_DIR = conf.GetStoreDir()
 
 type Node struct {
@@ -34,15 +36,24 @@ type Store struct {
 	Trees []Tree
 }
 
-func NewTree(name string) *Tree {
-	return &Tree{
-		Name:     name,
-		SubTrees: []*Tree{},
-		Nodes:    []*Node{},
+func NewTree(name string) (*Tree, error) {
+	if IsNameValid(name) {
+		return &Tree{
+			Name:     name,
+			SubTrees: []*Tree{},
+			Nodes:    []*Node{},
+		}, nil
 	}
+	return nil, errors.New("Tree name does not valid, it can not be root of empty")
 }
 
-func NewNode(links []string, alias []string, desc []string, icon string, labels []string, style interface{}) *Node {
+func NewNode(links []string, alias []string, desc []string, icon string, labels []string, style interface{}) (*Node, error) {
+	for _, link := range links {
+		err := IsUrl(link)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &Node{
 		Link:  links,
 		Alias: alias,
@@ -50,7 +61,7 @@ func NewNode(links []string, alias []string, desc []string, icon string, labels 
 		Icon:  icon,
 		Label: labels,
 		Style: style,
-	}
+	}, nil
 }
 
 func GetAllTreeName() []string {
@@ -95,12 +106,16 @@ func getTree(name string) *Tree {
 	return t
 }
 
-func getAllRootTree() []*Tree {
+func getAllTree() []*Tree {
 	list := []*Tree{}
 	for _, name := range GetAllTreeName() {
 		list = append(list, getTree(name))
 	}
 	return list
+}
+
+func GetRootTree() *Tree {
+	return &RootTree
 }
 
 func GetTree(name string) *Tree {
@@ -114,7 +129,7 @@ func GetTree(name string) *Tree {
 	return nil
 }
 
-func (tree Tree) FindSubTree(name string) *Tree {
+func (tree *Tree) FindSubTree(name string) *Tree {
 	for _, subtree := range tree.SubTrees {
 		if subtree.Name == name {
 			return subtree
@@ -123,7 +138,17 @@ func (tree Tree) FindSubTree(name string) *Tree {
 	return nil
 }
 
-func (tree Tree) FindAllSubTree(name string) []*Tree {
+func (tree *Tree) DeepFindSubTree(names []string) *Tree {
+	if len(names) == 0 {
+		return tree
+	}
+	if !IsInList(tree.GetSubtreesName(), names[0]) {
+		return nil
+	}
+	return tree.FindSubTree(names[0]).DeepFindSubTree(names[1:])
+}
+
+func (tree *Tree) FindAllSubTree(name string) []*Tree {
 	list := []*Tree{}
 	if len(tree.SubTrees) == 0 {
 		return list
@@ -141,7 +166,7 @@ func (tree Tree) FindAllSubTree(name string) []*Tree {
 	return list
 }
 
-func (tree Tree) FindNode(hint string) *Node {
+func (tree *Tree) FindNode(hint string) *Node {
 	pattern := regexp.QuoteMeta(hint)
 	reg := regexp.MustCompile(pattern)
 
@@ -163,7 +188,7 @@ func (tree Tree) FindNode(hint string) *Node {
 }
 
 // hint means "link" or "alias"
-func (tree Tree) FindAllNode(hint string) []*Node {
+func (tree *Tree) FindAllNode(hint string) []*Node {
 	list := []*Node{}
 	pattern := regexp.QuoteMeta(hint)
 	reg := regexp.MustCompile(pattern)

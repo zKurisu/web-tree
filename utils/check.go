@@ -3,6 +3,7 @@ package utils
 import (
 	"log"
 	"net/url"
+	"reflect"
 )
 
 // The Root tree name should be the same with
@@ -49,15 +50,43 @@ func IsTreeExist(name string) bool {
 	}
 }
 
-func IsRootTree(tree *Tree) bool {
+func IsSubTree(tree *Tree) bool {
 	for _, v := range RootTree.GetAllSubtree() {
 		if v == tree {
-			return true
+			return false
 		}
 	}
-	return false
+	return true
 }
 
-func IsTreeUpdate(tree Tree) bool {
-	return false
+func IsNameValid(name string) bool {
+	if name == "root" || name == "" {
+		return false
+	}
+	return true
+}
+
+func isNodeEqual(n1, n2 *Node) bool {
+	return reflect.DeepEqual(n1, n2)
+}
+
+func IsTreeEqual(t1, t2 Tree) bool {
+	if len(t1.Nodes) != len(t2.Nodes) || len(t1.SubTrees) != len(t2.SubTrees) {
+		return false
+	} else {
+		for i := 0; i < len(t1.Nodes); i++ {
+			if !isNodeEqual(t1.Nodes[i], t2.Nodes[i]) {
+				return false
+			}
+		}
+		for i := 0; i < len(t1.SubTrees); i++ {
+			return IsTreeEqual(*t1.SubTrees[i], *t2.SubTrees[i])
+		}
+	}
+	return true
+}
+
+func (tree Tree) IsUpdate() bool {
+	ori := getTree(tree.Name)
+	return !IsTreeEqual(tree, *ori)
 }

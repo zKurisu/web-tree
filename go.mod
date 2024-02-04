@@ -4,6 +4,7 @@ go 1.21.6
 
 require (
 	github.com/charmbracelet/bubbletea v0.25.0
+	github.com/davecgh/go-spew v1.1.1
 	github.com/spf13/cobra v1.8.0
 	gopkg.in/yaml.v3 v3.0.1
 )

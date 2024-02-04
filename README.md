@@ -2,7 +2,6 @@
 Using bubbletea and libgloss to write a web favorates handler for command line usage.
 
 Multiple ways to sort: label, folder
-
 Concept image:
 
 # Targets
@@ -66,15 +65,19 @@ Without the sub-command, open the node with browser.
 
 根据 RootTree 这个变量来添加文件. 在 Add, Delete 这些操作之后, 需要更新 RootTree 等变量的信息.
 
-默认创建一个 root.yaml 文件(临时文件), 包含其他 tree 信息, 通过读取这个文件来更新 RootTree 变量. 循环对 Root 之下的每一个 Tree 做写入操作以 Update.
+默认创建一个 root.yaml 文件(临时文件), 包含其他 tree 信息, 通过读取这个文件来更新 RootTree 变量. 循环对 Root 之下的每一个 Tree 做写入操作以 Update. -Fi-
 
-判断一个 Tree 是否改变.
+判断一个 Tree 是否改变. 比较内存中的大小是否可行. -Fi-
 
 手动保存, 或退出时一并写入.
 
-普通树名不能为 root
+普通树名不能为 root -Fi-
 
-合并 AddNewSubTree 和 AddSubTree 两个函数
+添加 sub tree 可接收 list, map 等.
+
+在 NewTree 和 NewNode 时对参数进行检验 -Fi-
+
+判断一个 alias 以及 link 是否已经存在
 
 ### 主要信息
 root 的 flag 有:
