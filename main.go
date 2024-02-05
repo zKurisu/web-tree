@@ -11,6 +11,23 @@ import (
 
 func main() {
 	cmd.Execute()
+	// utils.CheckTreeName()
+	// root := utils.GetRootTree()
+	// b := root.FindSubTree("baba")
+	//
+	// b.ChangeFileName("haha")
+
+	// node1, _ := utils.NewNode(
+	// 	[]string{"https://test1.com", "https://test2.com"},
+	// 	[]string{"test4", "test5"},
+	// 	[]string{"desc1", "desc2"},
+	// 	"icon",
+	// 	[]string{"label1", "label2"},
+	// 	"style",
+	// )
+	// h.AddNode(node1)
+	// h.AddNewSubTree("babalala")
+	// utils.WriteAll()
 }
 
 // root := utils.GetRootTree()

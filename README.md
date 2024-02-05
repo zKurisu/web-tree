@@ -79,6 +79,14 @@ Without the sub-command, open the node with browser.
 
 判断一个 alias 以及 link 是否已经存在
 
+去除重复的 hint
+
+去除空字符串
+
+edit 的问题, tree name 被修改导致找不到原文件
+
+为每一个函数添加错误处理.
+
 ### 主要信息
 root 的 flag 有:
 - `--version`, `-v`, "0.01"

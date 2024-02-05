@@ -23,7 +23,7 @@ func (tree *Tree) WriteTree() error {
 		log.Fatal(err)
 	}
 
-	filePath := GetTreeFile(tree)
+	filePath := tree.GetFile()
 	fd, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
@@ -42,12 +42,17 @@ func (tree *Tree) WriteTree() error {
 }
 
 func WriteAll() error {
+	// log.Println("Begin Write")
 	for _, tree := range RootTree.SubTrees {
 		if tree.IsUpdate() {
+			// log.Println("Tree " + tree.Name + " is updated")
 			if err := tree.WriteTree(); err != nil {
 				return errors.New("Wrong when Write " + tree.Name)
 			}
 		}
+		//       else {
+		// 	log.Println("Tree " + tree.Name + " does not update")
+		// }
 	}
 	return nil
 }
@@ -83,7 +88,7 @@ func delTree(name string) {
 	Backup(name)
 	if name == "" {
 		log.Fatal("Can not use empty as name")
-	} else if !IsInList(GetAllTreeName(), AddFileExtention(name)) {
+	} else if !IsInList(GetAllTreeName(), RemoveFileExtention(name)) {
 		log.Fatal("Does not exit " + name + ".yaml")
 	}
 	path := filepath.Join(conf.GetStoreDir(), AddFileExtention(name))
@@ -132,18 +137,13 @@ func (tree *Tree) AddNode(node *Node) {
 	tree.Nodes = append(tree.Nodes, node)
 }
 
-func (tree *Tree) DelNode(name string) {
+func (tree *Tree) DelNode(hints []string) {
+	hints = RemoveDup(hints)
 	delList := []*Node{}
 	for _, node := range tree.Nodes {
-		for _, link := range node.Link {
-			if link == name {
-				delList = append(delList, node)
-			}
-		}
-		for _, alias := range node.Alias {
-			if alias == name && !IsNodeExist(delList, node) {
-				delList = append(delList, node)
-			}
+		// log.Println("Node call")
+		if node.MatchHint(hints) == len(hints) {
+			delList = append(delList, node)
 		}
 	}
 

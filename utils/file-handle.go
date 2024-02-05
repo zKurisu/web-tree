@@ -49,10 +49,22 @@ func BackFile(dest string, src string) error {
 	return nil
 }
 
-func GetTreeFile(tree *Tree) string {
+func (tree *Tree) GetFile() string {
 	filaName := AddFileExtention(tree.Name)
 	storeDir := conf.GetStoreDir()
 	return filepath.Join(storeDir, filaName)
+}
+
+func (tree *Tree) ChangeFileName(name string) {
+	storeDir := conf.GetStoreDir()
+
+	oriFile := tree.GetFile()
+	newFile := filepath.Join(storeDir, AddFileExtention(name))
+	err := os.Rename(oriFile, newFile)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func AddFileExtention(name string) string {

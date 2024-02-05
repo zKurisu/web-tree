@@ -89,7 +89,7 @@ func GetAllTreeName() []string {
 }
 
 func getTree(name string) *Tree {
-	var t *Tree
+	var t *Tree = nil
 	treeList := GetAllTreeName()
 
 	if IsInList(treeList, name) {
@@ -166,25 +166,37 @@ func (tree *Tree) FindAllSubTree(name string) []*Tree {
 	return list
 }
 
-func (tree *Tree) FindNode(hint string) *Node {
-	pattern := regexp.QuoteMeta(hint)
-	reg := regexp.MustCompile(pattern)
-
+func (tree *Tree) FindNodes(hints []string) []*Node {
+	nodeList := []*Node{}
 	if len(tree.Nodes) != 0 {
 		for _, node := range tree.Nodes {
-			for _, link := range node.Link {
-				if reg.MatchString(link) {
-					return node
-				}
-			}
-			for _, alias := range node.Alias {
-				if reg.MatchString(alias) {
-					return node
-				}
+			// log.Println("Node call")
+			if node.MatchHint(hints) != 0 {
+				nodeList = append(nodeList, node)
 			}
 		}
 	}
-	return nil
+	return nodeList
+}
+
+// Most matched node
+func (tree *Tree) FindNode(hints []string) *Node {
+	hints = RemoveDup(hints)
+	nodeMap := make(map[*Node]int)
+
+	for _, node := range tree.Nodes {
+		nodeMap[node] = node.MatchHint(hints)
+	}
+
+	var maxNode *Node
+	var maxMatch int = 0
+	for node, matchInt := range nodeMap {
+		if matchInt > maxMatch {
+			maxNode = node
+			maxMatch = matchInt
+		}
+	}
+	return maxNode
 }
 
 // hint means "link" or "alias"
@@ -221,4 +233,63 @@ func (tree *Tree) FindAllNode(hint string) []*Node {
 		}
 	}
 	return list
+}
+
+//	func (node *Node) MatchHint(hints []string) int {
+//		matched := 0
+//		if len(hints) == 0 {
+//			return matched
+//		}
+//		pattern := regexp.QuoteMeta(hints[0])
+//		reg := regexp.MustCompile(pattern)
+//
+//		for _, link := range node.Link {
+//			if reg.MatchString(link) {
+//				matched = 1 + node.MatchHint(hints[1:])
+//			}
+//		}
+//		for _, alias := range node.Alias {
+//			if reg.MatchString(alias) {
+//				matched = 1 + node.MatchHint(hints[1:])
+//			}
+//		}
+//		return matched
+//	}
+func (node *Node) MatchHint(hints []string) int {
+	matched := 0
+	if len(hints) == 0 {
+		return matched
+	}
+
+	for _, link := range node.Link {
+		if link == hints[0] {
+			matched = 1 + node.MatchHint(hints[1:])
+			// log.Println(matched)
+		}
+		// log.Println("Link is: " + link + " -- Hint is: " + hints[0])
+	}
+	for _, alias := range node.Alias {
+		if alias == hints[0] {
+			matched = 1 + node.MatchHint(hints[1:])
+			// log.Println(matched)
+		}
+		// log.Println("Alias is: " + alias + " -- Hint is: " + hints[0])
+	}
+
+	if matched == 0 {
+		node.MatchHint(hints[1:])
+	}
+
+	return matched
+}
+
+func RemoveDup(list []string) []string {
+	newList := []string{}
+
+	for _, elem := range list {
+		if !IsInList(newList, elem) {
+			newList = append(newList, elem)
+		}
+	}
+	return newList
 }

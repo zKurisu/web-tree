@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	// "github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
 	"log"
 	"web-tree/utils"
@@ -14,6 +15,9 @@ var (
 		Long:  "",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			nameList := utils.Split2List(treeName)
+			aliasList := utils.Split2List(alias)
+			linkList := utils.Split2List(link)
+
 			if len(nameList) == 0 {
 				return errors.New("A tree name must be specified")
 			} else {
@@ -34,10 +38,14 @@ var (
 						root.DeepFindSubTree(treeLevels[:len(treeLevels)-1]).DelSubTree(treeLevels[len(treeLevels)-1])
 						log.Println("Delete " + name + "....")
 					} else if alias != "" {
-						root.DeepFindSubTree(treeLevels).DelNode(alias)
+						// log.Println(root.DeepFindSubTree(treeLevels).Nodes)
+						// spew.Dump(root.DeepFindSubTree(treeLevels))
+						root.DeepFindSubTree(treeLevels).DelNode(aliasList)
+						// spew.Dump(root.DeepFindSubTree(treeLevels))
+						// log.Println(root.DeepFindSubTree(treeLevels).Nodes)
 						log.Println("Delete node with alias [" + alias + "] under " + name + "....")
 					} else if link != "" {
-						root.DeepFindSubTree(treeLevels).DelNode(link)
+						root.DeepFindSubTree(treeLevels).DelNode(linkList)
 						log.Println("Delete node with link [" + link + "] under " + name + "....")
 					} else {
 						return errors.New("An alias or a link is needed to delete a node")
@@ -46,10 +54,10 @@ var (
 					if !isNode {
 						root.DelSubTree(treeLevels[0])
 					} else if alias != "" {
-						root.FindSubTree(treeLevels[0]).DelNode(alias)
+						root.FindSubTree(treeLevels[0]).DelNode(aliasList)
 						log.Println("Delete node with alias [" + alias + "] under " + name + "....")
 					} else if link != "" {
-						root.FindSubTree(treeLevels[0]).DelNode(link)
+						root.FindSubTree(treeLevels[0]).DelNode(linkList)
 						log.Println("Delete node with alias [" + link + "] under " + name + "....")
 					} else {
 						return errors.New("An alias or a link is needed to delete a node")

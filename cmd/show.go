@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
+	"log"
+	"web-tree/utils"
 )
 
 var showCmd = &cobra.Command{
@@ -9,7 +13,59 @@ var showCmd = &cobra.Command{
 	Short: "Show detail of a meta info",
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
+		root := utils.GetRootTree()
+		// If --label=<label> is specified
+		if label != "" {
+			if treeName != "" || isNode || link != "" || alias != "" {
+				log.Fatal("Using --label alone, without --tree, --node, --link and --alias")
+			}
+			nodeList := root.FindAllNode("")
+			for _, node := range nodeList {
+				for _, nodelabel := range utils.RemoveDup(node.Label) {
+					if label == nodelabel {
+						fmt.Println(node.Link)
+					}
+				}
+			}
+		} else {
+			nameList := utils.Split2List(treeName)
+			if len(nameList) == 0 {
+				log.Fatal("A tree name must be specified")
+			} else {
+				for _, name := range nameList {
+					if !utils.IsNameValid(name) {
+						log.Fatal("The tree name is not valid (edit)")
+					}
+				}
+			}
 
+			for _, name := range nameList {
+				treeLevels := utils.SplitTreeLevel(name)
+				tree := root.DeepFindSubTree(treeLevels)
+				if tree == nil {
+					log.Fatal("[show] Could not find tree: " + name)
+				}
+
+				if !isNode {
+					spew.Dump(tree)
+				} else {
+					hints := []string{}
+					if link != "" {
+						links := utils.Split2List(link)
+						hints = utils.MergeList(hints, links)
+					}
+					if alias != "" {
+						aliasList := utils.Split2List(alias)
+						hints = utils.MergeList(hints, aliasList)
+					}
+					node := tree.FindNode(hints)
+					if node == nil {
+						log.Fatal("[edit] could not find node")
+					}
+					spew.Dump(node)
+				}
+			}
+		}
 	},
 }
 
