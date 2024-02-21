@@ -49,7 +49,7 @@ var (
 						log.Fatal("Flag: --alias and --link should be used with --node")
 					}
 					targetTree.AddSubTree(tree)
-					if utils.IsSubTree(tree) {
+					if !root.IsSubTree(tree) {
 						root.DeepFindSubTree(treeLevels[:len(treeLevels)-1]).DelSubTree(tree.Name)
 					} else {
 						root.DelSubTree(tree.Name)

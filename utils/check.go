@@ -51,13 +51,33 @@ func IsTreeExist(name string) bool {
 	}
 }
 
-func IsSubTree(tree *Tree) bool {
-	for _, v := range RootTree.GetAllSubtree() {
+func IsTree(v interface{}) bool {
+	treeType := reflect.TypeOf(Tree{})
+	varType := reflect.TypeOf(v)
+
+	if varType.Kind() == reflect.Ptr {
+		varType = varType.Elem()
+	}
+	return treeType == varType
+}
+
+func (t Tree) IsSubTree(tree *Tree) bool {
+	for _, v := range t.GetAllSubtree() {
 		if v == tree {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
+}
+
+func IsNode(v interface{}) bool {
+	nodeType := reflect.TypeOf(Node{})
+	varType := reflect.TypeOf(v)
+
+	if varType.Kind() == reflect.Ptr {
+		varType = varType.Elem()
+	}
+	return nodeType == varType
 }
 
 func IsNameValid(name string) bool {

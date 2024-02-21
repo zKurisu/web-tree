@@ -12,8 +12,8 @@ import (
 
 // Compare to root tree list
 func (tree *Tree) WriteTree() error {
-	if IsSubTree(tree) {
-		return errors.New("It is a sub tree")
+	if !RootTree.IsSubTree(tree) {
+		return errors.New("It is not a sub tree of root")
 	}
 
 	Backup(tree.Name)

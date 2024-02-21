@@ -34,6 +34,7 @@ Concept image:
     检查是否为 url
     全局查找一个 node
 
+## UI
 Possible TUI for it:
 - text input
 - help
@@ -48,6 +49,14 @@ Possible TUI for it:
 - tabs
 - tui-daemon-combo
 
+如何获取终端长度和宽度
+
+如何绘制出 box, 或者是每个 part 分别的 box
+
+先完成 search 部分还是 display 部分
+
+测试函数声明是否可以改变.
+
 1. Command line args
 2. Draw the outer box
 3. help, key menu
@@ -55,6 +64,32 @@ Possible TUI for it:
 5. Add function for http testing
 
 Alias could not be duplicated
+
+测试程序:
+- textinput/textinputs 以及 autocomplete
+
+可以高级检索, 此时用 textinputs
+
+添加 strings.Builder 来创建 View() 需要的字符串
+
+完成测试的组件:
+- textinput -Fi-
+- textinputs -Fi-
+- key -Fi-
+- box -Fi-
+
+描述性测试:
+- 显示 help 信息
+- 设置 box 的 padding -Fi-
+
+### Help
+
+### Status
+显示 sort 方式, tree, node, label 数量等.
+
+### Search
+
+### Display
 
 ## Cmd
 Sub-command and function.
@@ -284,7 +319,3 @@ webtree show --label=<name>
 
     Search, on the top of the UI
     Web tree, 
-
-
-
-

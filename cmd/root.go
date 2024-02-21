@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
+	"log"
+	"web-tree/ui"
 )
 
 var rootCmd = &cobra.Command{
@@ -10,6 +13,10 @@ var rootCmd = &cobra.Command{
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Open the TUI
+		p := tea.NewProgram(ui.InitialModel())
+		if _, err := p.Run(); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
