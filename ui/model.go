@@ -12,33 +12,46 @@ import (
 )
 
 type Model struct {
-	help           help.Model
-	searchInput    textinput.Model
-	paginator      paginator.Model
-	viewport       viewport.Model
-	suggestionList []string
-	items          []string
-	content        string
-	ready          bool
-	keymap         keyMap
-	root           utils.Tree
+	help             help.Model
+	searchInput      textinput.Model
+	adSearchInput    []textinput.Model
+	paginator        paginator.Model
+	viewport         viewport.Model
+	root             utils.Tree
+	suggestionList   []string
+	items            []string
+	sugSelectedIndex int
+	content          string
+	keymap           keyMap
+	ready            bool
+	mode             Mode
 }
 
 type keyMap struct {
-	UP     key.Binding
-	DOWN   key.Binding
-	LEFT   key.Binding
-	RIGHT  key.Binding
-	OPEN   key.Binding
-	ADD    key.Binding
-	DELETE key.Binding
-	JUMP   key.Binding
-	TOGGLE key.Binding
-	DETAIL key.Binding
-	SINGLE key.Binding
-	SWITCH key.Binding
-	HELP   key.Binding
+	UP       key.Binding
+	DOWN     key.Binding
+	LEFT     key.Binding
+	RIGHT    key.Binding
+	OPEN     key.Binding
+	ADD      key.Binding
+	DELETE   key.Binding
+	JUMP     key.Binding
+	TOGGLE   key.Binding
+	DETAIL   key.Binding
+	SINGLE   key.Binding
+	COMPLETE key.Binding
+	SWITCH   key.Binding
+	QUIT     key.Binding
+	HELP     key.Binding
 }
+
+type Mode int
+
+const (
+	search Mode = iota
+	advancedSearch
+	display
+)
 
 var (
 	treePerPage = 5
@@ -55,11 +68,13 @@ var (
 	noStyle                 = lipgloss.NewStyle()
 	searchBoxStyle          = lipgloss.NewStyle()
 	suggestionBoxStyle      = lipgloss.NewStyle()
-	suggestionTreeStyle     = lipgloss.NewStyle()
-	suggestionNodeStyle     = lipgloss.NewStyle()
-	suggestionQuoteStyle    = lipgloss.NewStyle()
-	suggestionMatchedStyle  = lipgloss.NewStyle()
-	suggestionSelectedStyle = lipgloss.NewStyle()
+	suggestionTreeStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#248"))
+	suggestionNodeStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#2c8"))
+	suggestionQuoteStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#4421f2"))
+	suggestionMatchedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#eeee92"))
+	suggestionSelectedStyle = lipgloss.NewStyle().Background(lipgloss.Color("#e78"))
+
+	viewBoxStyle = lipgloss.NewStyle()
 
 	browserStyle     = lipgloss.NewStyle()
 	treeStyle        = lipgloss.NewStyle()
@@ -71,20 +86,24 @@ var (
 
 	keymap = keyMap{
 		UP: key.NewBinding(
-			key.WithKeys("ctrl+k"),
+			key.WithKeys("ctrl+k", "k"),
 			key.WithHelp("ctrl+k", "Move up"),
+			key.WithHelp("k", "Move up"),
 		),
 		DOWN: key.NewBinding(
-			key.WithKeys("ctrl+j"),
+			key.WithKeys("ctrl+j", "j"),
 			key.WithHelp("ctrl+j", "Move down"),
+			key.WithHelp("j", "Move down"),
 		),
 		LEFT: key.NewBinding(
-			key.WithKeys("ctrl+h"),
+			key.WithKeys("ctrl+h", "h"),
 			key.WithHelp("ctrl+h", "Move left"),
+			key.WithHelp("h", "Move left"),
 		),
 		RIGHT: key.NewBinding(
-			key.WithKeys("ctrl+l"),
+			key.WithKeys("ctrl+l", "l"),
 			key.WithHelp("ctrl+l", "Move right"),
+			key.WithHelp("l", "Move right"),
 		),
 		OPEN: key.NewBinding(
 			key.WithKeys("ctrl+o"),
@@ -95,7 +114,8 @@ var (
 			key.WithHelp("ctrl+a", "Add a new tree/node"),
 		),
 		DELETE: key.NewBinding(
-			key.WithKeys("ctrl+d"),
+			key.WithKeys("backspace", "ctrl+d"),
+			key.WithHelp("backspace", "Delete a character"),
 			key.WithHelp("ctrl+d", "Delete a tree/node"),
 		),
 		JUMP: key.NewBinding(
@@ -114,9 +134,20 @@ var (
 			key.WithKeys("ctrl+x"),
 			key.WithHelp("ctrl+x", "Show single tree horizontally"),
 		),
+		COMPLETE: key.NewBinding(
+			key.WithKeys("tab", "shift+tab"),
+			key.WithHelp("tab", "Autocomplete the input, index move forward"),
+			key.WithHelp("shift+tab", "Autocomplete the input, index move backward"),
+		),
 		SWITCH: key.NewBinding(
-			key.WithKeys("tab"),
-			key.WithHelp("tab", "Switch between input and display region"),
+			key.WithKeys("esc", "i", "ctrl+i"),
+			key.WithHelp("esc", "Display mode"),
+			key.WithHelp("i", "Normal search mode"),
+			key.WithHelp("esc", "AdvancedSearch mode"),
+		),
+		QUIT: key.NewBinding(
+			key.WithKeys("ctrl+c"),
+			key.WithHelp("ctrl+c", "Quit"),
 		),
 		HELP: key.NewBinding(
 			key.WithKeys("ctrl+h"),

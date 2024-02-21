@@ -3,6 +3,7 @@ package ui
 import (
 	"regexp"
 	"sort"
+	"strings"
 )
 
 func Fuzzy(src string, targets []string) []string {
@@ -18,7 +19,11 @@ func Fuzzy(src string, targets []string) []string {
 
 	for _, elem := range targets {
 		if re.MatchString(elem) {
-			list = append(list, elem)
+			start := strings.Index(elem, re.String())
+			end := start + len(re.String())
+			matched := suggestionMatchedStyle.Render(elem[start:end])
+			s := elem[:start] + matched + elem[end:]
+			list = append(list, s)
 		}
 	}
 	return list

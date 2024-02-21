@@ -1,25 +1,17 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	// "gopkg.in/yaml.v3"
 	// "web-tree/conf"
-	// "web-tree/cmd"
-	"web-tree/ui"
-	"web-tree/utils"
+	"web-tree/cmd"
+	// "web-tree/utils"
 )
 
 func main() {
-	// cmd.Execute()
-	utils.CheckTreeName()
-	root := utils.GetRootTree()
-	allTrees := root.DeepGetAllSubtreePath("")
-	list := ui.SuggestionInit()
-	fmt.Println(allTrees)
-	fmt.Println(utils.SplitTreeLevel(allTrees[1]))
-	for _, elem := range list {
-		fmt.Println(elem)
-	}
+	cmd.Execute()
+	// utils.CheckTreeName()
+	// root := utils.GetRootTree()
 	// t := root.FindSubTree("balabala")
 	// n := t.FindNode([]string{"test1"})
 	// if utils.IsNode(n) {

@@ -18,7 +18,7 @@ func SuggestionInit() []string {
 
 	for _, treePath := range treePathes {
 		treePrefix := suggestionTreeStyle.Render("*tree ")
-		nameHint := suggestionQuoteStyle.Render(" (name)")
+		nameHint := suggestionQuoteStyle.Render(" (name) ")
 		s := treePrefix + treePath + nameHint
 		treeSuggestionList = append(treeSuggestionList, s)
 	}
@@ -40,8 +40,8 @@ func inputInit() textinput.Model {
 	ti.KeyMap = textinput.KeyMap{}
 	ti.Placeholder = "Input link or alias"
 	ti.Focus()
-	ti.ShowSuggestions = true
 	ti.SetSuggestions(SuggestionInit())
+	ti.ShowSuggestions = true
 	return ti
 }
 
@@ -60,15 +60,18 @@ func InitialModel() Model {
 	root := utils.RootTree
 
 	return Model{
-		help:        help.New(),
-		searchInput: inputInit(),
-		paginator:   paginatorInit(),
-		items:       root.GetSubtreesName(),
-		keymap:      keymap,
-		root:        root,
+		help:             help.New(),
+		searchInput:      inputInit(),
+		paginator:        paginatorInit(),
+		suggestionList:   SuggestionInit(),
+		sugSelectedIndex: 0,
+		items:            root.GetSubtreesName(),
+		keymap:           keymap,
+		root:             root,
+		mode:             search,
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return textinput.Blink
 }
