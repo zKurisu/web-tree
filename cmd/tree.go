@@ -11,7 +11,7 @@ var treeCmd = &cobra.Command{
 	Short: "List all trees",
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
-		treeList := utils.GetAllTreeName()
+		treeList := utils.RootTree.GetAllSubtreeName()
 		for _, name := range treeList {
 			fmt.Println(name)
 		}

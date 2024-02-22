@@ -11,8 +11,8 @@ var CONFIG_DIR = filepath.Join(os.Getenv("HOME"), "/.config/web-tree/")
 var STORE_DIR = filepath.Join(CONFIG_DIR, "data")
 var BACK_DIR = filepath.Join(STORE_DIR, ".backup")
 var TREE_TEMPELATE = `name:  %
-tree:
-nodes:
+tree: []
+nodes: []
 `
 
 func GetConfigName() string {

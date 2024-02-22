@@ -12,8 +12,8 @@ import (
 
 // Every change? Delete a file? Already exist --> Add index/time
 func Backup(name string) {
-	if !IsTreeExist(name) {
-		log.Fatal("Tree " + name + " does not exist")
+	if !IsRootSubTreeExist(name) {
+		log.Fatal("RootSubTree " + name + " does not exist")
 	}
 	backDir := conf.GetBackDir()
 	storeDir := conf.GetStoreDir()
@@ -49,17 +49,23 @@ func BackFile(dest string, src string) error {
 	return nil
 }
 
-func (tree *Tree) GetFile() string {
-	filaName := AddFileExtention(tree.Name)
+func getRootSubTreeFile(name string) string {
+	if !IsRootSubTreeExist(name) {
+		log.Fatal("In function [getRootSubTreeFile], RootSubTree " + name + " does not exist")
+	}
+	filaName := AddFileExtention(name)
 	storeDir := conf.GetStoreDir()
 	return filepath.Join(storeDir, filaName)
 }
 
-func (tree *Tree) ChangeFileName(name string) {
+func ChangeRootSubTreeFileName(ori string, new string) {
+	if !IsRootSubTreeExist(ori) {
+		log.Fatal("In function [ChangeRootSubTreeFileName], RootSubTree " + ori + " does not exist")
+	}
 	storeDir := conf.GetStoreDir()
 
-	oriFile := tree.GetFile()
-	newFile := filepath.Join(storeDir, AddFileExtention(name))
+	oriFile := getRootSubTreeFile(ori)
+	newFile := filepath.Join(storeDir, AddFileExtention(new))
 	err := os.Rename(oriFile, newFile)
 
 	if err != nil {

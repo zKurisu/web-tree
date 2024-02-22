@@ -29,8 +29,7 @@ var editCmd = &cobra.Command{
 		root := utils.GetRootTree()
 
 		for _, name := range nameList {
-			treeLevels := utils.SplitTreeLevel(name)
-			tree := root.DeepFindSubTree(treeLevels)
+			tree := root.DeepFindSubTree(name)
 			if tree == nil {
 				log.Fatal("Could not find tree " + name)
 			}
@@ -43,22 +42,22 @@ var editCmd = &cobra.Command{
 				} else if newLink != "" || newAlias != "" || newDesc != "" || newLabel != "" {
 					log.Fatal("Flag: --nlink, --nalias, --ndesc, --nlabel should be used with --node")
 				} else {
-					tree.ChangeFileName(newName)
+					utils.ChangeRootSubTreeFileName(tree.Name, newName)
 					tree.Name = newName
 				}
 			} else {
 				hints := []string{}
 				if newName != "" {
-					tree.ChangeFileName(newName)
+					utils.ChangeRootSubTreeFileName(tree.Name, newName)
 					tree.Name = newName
 				}
 				if link != "" {
 					links := utils.Split2List(link)
-					hints = utils.MergeList(hints, links)
+					hints = utils.MergeList(hints, links).([]string)
 				}
 				if alias != "" {
 					aliasList := utils.Split2List(alias)
-					hints = utils.MergeList(hints, aliasList)
+					hints = utils.MergeList(hints, aliasList).([]string)
 				}
 				node := tree.FindNode(hints)
 				if node == nil {

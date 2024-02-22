@@ -10,9 +10,17 @@ import (
 
 func main() {
 	cmd.Execute()
-	// utils.CheckTreeName()
+	// utils.CheckRootSubTreeName()
 	// root := utils.GetRootTree()
-	// t := root.FindSubTree("balabala")
+	// err := root.DeepDelSubTree("balabala")
+	// for _, t := range root.GetAllSubtreeName() {
+	// 	fmt.Println(t)
+	// }
+	// fmt.Println(err)
+	// for _, elem := range list {
+	// 	fmt.Println(elem.GetTreeName())
+	// }
+
 	// n := t.FindNode([]string{"test1"})
 	// if utils.IsNode(n) {
 	// 	fmt.Println("It's node")

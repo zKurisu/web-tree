@@ -9,15 +9,15 @@ import (
 
 // The Root tree name should be the same with
 // file name
-func CheckTreeName() {
-	allTreeName := GetAllTreeName()
-	for _, name := range allTreeName {
-		t := GetTree(name)
+func CheckRootSubTreeName() {
+	allRootSubTreeName := RootTree.GetAllSubtreeName()
+	for _, name := range allRootSubTreeName {
+		t := getRootSubTree(name)
 		if t.Name != name {
 			log.Fatal(`[` + name + `]` + " :The Root tree name should be the same with file name")
 		}
 	}
-	log.Println("CheckTreeName OK")
+	log.Println("CheckRootSubTreeName OK")
 }
 
 func IsUrl(s string) error {
@@ -43,8 +43,8 @@ func IsNodeExist(nodes []*Node, node *Node) bool {
 	return false
 }
 
-func IsTreeExist(name string) bool {
-	if IsInList(GetAllTreeName(), name) {
+func IsRootSubTreeExist(name string) bool {
+	if IsInList(RootTree.GetAllSubtreeName(), name) {
 		return true
 	} else {
 		return false
@@ -104,6 +104,7 @@ func IsTreeEqual(t1, t2 *Tree) bool {
 	// log.Printf("t1: %p, t2: %p", t1, t2)
 	var isEqual bool = true
 	// log.Println("Before testing name and len")
+	// log.Println(len(t2.SubTrees))
 	if t1.Name != t2.Name || len(t1.Nodes) != len(t2.Nodes) || len(t1.SubTrees) != len(t2.SubTrees) {
 		isEqual = false
 	} else {
@@ -116,19 +117,23 @@ func IsTreeEqual(t1, t2 *Tree) bool {
 				return false
 			}
 		}
+		// log.Println("After testing nodes")
+		// log.Println("For tree: " + t1.Name + " and " + t2.Name)
 		for i := 0; i < len(t1.SubTrees); i++ {
 			isEqual = IsTreeEqual(t1.SubTrees[i], t2.SubTrees[i])
 			if !isEqual {
 				return isEqual
 			}
 		}
+		// log.Println(t1.Name + " After testing subtrees")
 	}
+	// log.Println("Fin")
 	return isEqual
 }
 
 func (tree *Tree) IsUpdate() bool {
 	// log.Println("Before get ori")
-	ori := getTree(tree.Name)
+	ori := getRootSubTree(tree.Name)
 	// if ori == nil {
 	// 	log.Fatal("Fail to get tree " + tree.Name)
 	// }

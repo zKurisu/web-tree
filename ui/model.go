@@ -12,19 +12,20 @@ import (
 )
 
 type Model struct {
-	help             help.Model
-	searchInput      textinput.Model
-	adSearchInput    []textinput.Model
-	paginator        paginator.Model
-	viewport         viewport.Model
-	root             utils.Tree
-	suggestionList   []string
-	items            []string
-	sugSelectedIndex int
-	content          string
-	keymap           keyMap
-	ready            bool
-	mode             Mode
+	help           help.Model
+	searchInput    textinput.Model
+	adSearchInput  []textinput.Model
+	paginator      paginator.Model
+	viewport       viewport.Model
+	root           utils.Tree
+	suggestionList []string
+	items          []string
+	sugSelected    selected
+	content        string
+	keymap         keyMap
+	ready          bool
+	mode           Mode
+	debug          string
 }
 
 type keyMap struct {
@@ -32,6 +33,7 @@ type keyMap struct {
 	DOWN     key.Binding
 	LEFT     key.Binding
 	RIGHT    key.Binding
+	CLEAR    key.Binding
 	OPEN     key.Binding
 	ADD      key.Binding
 	DELETE   key.Binding
@@ -40,9 +42,25 @@ type keyMap struct {
 	DETAIL   key.Binding
 	SINGLE   key.Binding
 	COMPLETE key.Binding
+	SELECT   key.Binding
 	SWITCH   key.Binding
 	QUIT     key.Binding
 	HELP     key.Binding
+}
+
+type selected struct {
+	index   int
+	content interface{}
+}
+
+type treeMsg struct {
+	path string
+}
+
+type nodeMsg struct {
+	path  string
+	link  []string
+	alias []string
 }
 
 type Mode int
@@ -59,6 +77,17 @@ var (
 	treeHeight  = 5
 	treeGap     = 5
 
+	treePrefix                     = "*tree "
+	nodePrefix                     = "*node "
+	nameHint                       = " (name) "
+	linkHint                       = " (link) "
+	aliasHint                      = " (alias) "
+	nodePathHint                   = " (path) "
+	suggestionSelectedSuroundLeft  = "-}}"
+	suggestionSelectedSuroundRight = "{{-"
+	linkSep                        = " "
+	aliasSep                       = " "
+
 	nodeWidth  = 5
 	nodeHeight = 5
 
@@ -72,7 +101,7 @@ var (
 	suggestionNodeStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#2c8"))
 	suggestionQuoteStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#4421f2"))
 	suggestionMatchedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#eeee92"))
-	suggestionSelectedStyle = lipgloss.NewStyle().Background(lipgloss.Color("#e78"))
+	suggestionSelectedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#e78"))
 
 	viewBoxStyle = lipgloss.NewStyle()
 
@@ -105,6 +134,10 @@ var (
 			key.WithHelp("ctrl+l", "Move right"),
 			key.WithHelp("l", "Move right"),
 		),
+		CLEAR: key.NewBinding(
+			key.WithKeys("ctrl+r"),
+			key.WithHelp("ctrl+r", "Clear input text"),
+		),
 		OPEN: key.NewBinding(
 			key.WithKeys("ctrl+o"),
 			key.WithHelp("ctrl+o", "Open the link"),
@@ -134,16 +167,20 @@ var (
 			key.WithKeys("ctrl+x"),
 			key.WithHelp("ctrl+x", "Show single tree horizontally"),
 		),
+		SELECT: key.NewBinding(
+			key.WithKeys("enter"),
+			key.WithHelp("enter", "Select the one under cursor"),
+		),
 		COMPLETE: key.NewBinding(
 			key.WithKeys("tab", "shift+tab"),
 			key.WithHelp("tab", "Autocomplete the input, index move forward"),
 			key.WithHelp("shift+tab", "Autocomplete the input, index move backward"),
 		),
 		SWITCH: key.NewBinding(
-			key.WithKeys("esc", "i", "ctrl+i"),
+			key.WithKeys("esc", "i", "u"),
 			key.WithHelp("esc", "Display mode"),
 			key.WithHelp("i", "Normal search mode"),
-			key.WithHelp("esc", "AdvancedSearch mode"),
+			key.WithHelp("u", "AdvancedSearch mode"),
 		),
 		QUIT: key.NewBinding(
 			key.WithKeys("ctrl+c"),

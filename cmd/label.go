@@ -17,7 +17,7 @@ var (
 			var labelList []string
 
 			for _, node := range nodeList {
-				labelList = utils.MergeList(labelList, node.Label)
+				labelList = utils.MergeList(labelList, node.Label).([]string)
 			}
 			labelList = utils.RemoveDup(labelList)
 

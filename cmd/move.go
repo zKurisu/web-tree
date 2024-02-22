@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"log"
+	"strings"
 	"web-tree/utils"
 )
 
@@ -30,50 +31,56 @@ var (
 
 			root := utils.GetRootTree()
 			targetName := args[0]
-			targetTree := root.DeepFindSubTree(utils.SplitTreeLevel(targetName))
+			targetTree := root.DeepFindSubTree(targetName)
 
 			if targetTree == nil {
 				log.Fatal("Could not find tree " + targetName)
 			}
 			// log.Println("Echo " + args[0])
 			for _, name := range nameList {
-				treeLevels := utils.SplitTreeLevel(name)
-				tree := root.DeepFindSubTree(treeLevels)
-
-				if tree == nil {
-					log.Fatal("Could not find tree " + name)
-				}
-				if !isNode {
-					log.Println("Does not open node flag...")
-					if alias != "" || link != "" {
-						log.Fatal("Flag: --alias and --link should be used with --node")
-					}
-					targetTree.AddSubTree(tree)
-					if !root.IsSubTree(tree) {
-						root.DeepFindSubTree(treeLevels[:len(treeLevels)-1]).DelSubTree(tree.Name)
-					} else {
-						root.DelSubTree(tree.Name)
-					}
+				if targetTree.DeepFindSubTree(name) != nil {
+					log.Println("Tree " + targetName + " already have a subtree named " + name)
+					log.Println("Jump the moving of " + name)
 				} else {
-					log.Println("Open node flag...")
+					tree := root.DeepFindSubTree(name)
 
-					hints := []string{}
+					if tree == nil {
+						log.Fatal("Could not find tree " + name)
+					}
+					if !isNode {
+						log.Println("Does not open node flag...")
+						if alias != "" || link != "" {
+							log.Fatal("Flag: --alias and --link should be used with --node")
+						}
+						targetTree.AppendSubTree(tree)
+						if !root.IsSubTree(tree) {
+							treeLevels := utils.Split2List(name)
+							preTreeName := strings.Join(treeLevels[:len(treeLevels)-1], "/")
+							root.DeepFindSubTree(preTreeName).DelSubTree(tree.Name)
+						} else {
+							root.DelSubTree(tree.Name)
+						}
+					} else {
+						log.Println("Open node flag...")
 
-					if alias == "" && link == "" {
-						log.Fatal("Flag: --alias and --link should be used with --node")
+						hints := []string{}
+
+						if alias == "" && link == "" {
+							log.Fatal("Flag: --alias and --link should be used with --node")
+						}
+						if alias != "" {
+							hints = utils.MergeList(hints, utils.Split2List(alias)).([]string)
+						}
+						if link != "" {
+							hints = utils.MergeList(hints, utils.Split2List(link)).([]string)
+						}
+						node := tree.FindNode(hints)
+						if node == nil {
+							log.Fatal("[move] Could not find node")
+						}
+						targetTree.AppendNode(node)
+						tree.DelNode(hints)
 					}
-					if alias != "" {
-						hints = utils.MergeList(hints, utils.Split2List(alias))
-					}
-					if link != "" {
-						hints = utils.MergeList(hints, utils.Split2List(link))
-					}
-					node := tree.FindNode(hints)
-					if node == nil {
-						log.Fatal("[move] Could not find node")
-					}
-					targetTree.AddNode(node)
-					tree.DelNode(hints)
 				}
 			}
 

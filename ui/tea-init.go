@@ -11,28 +11,25 @@ import (
 
 // All tree name (expect root) and all nodes
 func SuggestionInit() []string {
-	treePathes := utils.RootTree.DeepGetAllSubtreePath("")
-	nodes := utils.RootTree.FindAllNode("")
+	treePathes := utils.RootTree.DeepGetAllSubtreeName()
+	nodes, nodePathes := utils.RootTree.DeepGetAllNodeWithPath()
 	treeSuggestionList := []string{}
 	nodeSuggestionList := []string{}
 
 	for _, treePath := range treePathes {
-		treePrefix := suggestionTreeStyle.Render("*tree ")
-		nameHint := suggestionQuoteStyle.Render(" (name) ")
 		s := treePrefix + treePath + nameHint
 		treeSuggestionList = append(treeSuggestionList, s)
 	}
 
-	for _, node := range nodes {
-		nodePrefix := suggestionNodeStyle.Render("*node ")
-		linkHint := suggestionQuoteStyle.Render(" (link) ")
-		aliasHint := suggestionQuoteStyle.Render(" (alias) ")
-		link := strings.Join(node.GetNodeLinks(), " ")
-		alias := strings.Join(node.GetNodeAlias(), " ")
-		s := nodePrefix + link + linkHint + alias + aliasHint
-		nodeSuggestionList = append(nodeSuggestionList, s)
+	for i, node := range nodes {
+		if node != nil {
+			link := strings.Join(node.GetNodeLinks(), linkSep)
+			alias := strings.Join(node.GetNodeAlias(), aliasSep)
+			s := nodePrefix + nodePathes[i] + nodePathHint + link + linkHint + alias + aliasHint
+			nodeSuggestionList = append(nodeSuggestionList, s)
+		}
 	}
-	return utils.MergeList(treeSuggestionList, nodeSuggestionList)
+	return utils.MergeList(treeSuggestionList, nodeSuggestionList).([]string)
 }
 
 func inputInit() textinput.Model {
@@ -52,7 +49,7 @@ func paginatorInit() paginator.Model {
 	pt.Type = paginator.Dots
 	pt.ActiveDot = activeDotStyle.Render("•")
 	pt.InactiveDot = inactiveDotStyle.Render("•")
-	pt.SetTotalPages(len(utils.RootTree.GetSubtreesName()))
+	pt.SetTotalPages(len(utils.RootTree.GetAllSubtreeName()))
 	return pt
 }
 
@@ -60,15 +57,15 @@ func InitialModel() Model {
 	root := utils.RootTree
 
 	return Model{
-		help:             help.New(),
-		searchInput:      inputInit(),
-		paginator:        paginatorInit(),
-		suggestionList:   SuggestionInit(),
-		sugSelectedIndex: 0,
-		items:            root.GetSubtreesName(),
-		keymap:           keymap,
-		root:             root,
-		mode:             search,
+		help:           help.New(),
+		searchInput:    inputInit(),
+		paginator:      paginatorInit(),
+		suggestionList: SuggestionInit(),
+		sugSelected:    selected{index: 0},
+		items:          root.GetAllSubtreeName(),
+		keymap:         keymap,
+		root:           root,
+		mode:           search,
 	}
 }
 

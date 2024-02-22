@@ -40,8 +40,7 @@ var showCmd = &cobra.Command{
 			}
 
 			for _, name := range nameList {
-				treeLevels := utils.SplitTreeLevel(name)
-				tree := root.DeepFindSubTree(treeLevels)
+				tree := root.DeepFindSubTree(name)
 				if tree == nil {
 					log.Fatal("[show] Could not find tree: " + name)
 				}
@@ -52,11 +51,11 @@ var showCmd = &cobra.Command{
 					hints := []string{}
 					if link != "" {
 						links := utils.Split2List(link)
-						hints = utils.MergeList(hints, links)
+						hints = utils.MergeList(hints, links).([]string)
 					}
 					if alias != "" {
 						aliasList := utils.Split2List(alias)
-						hints = utils.MergeList(hints, aliasList)
+						hints = utils.MergeList(hints, aliasList).([]string)
 					}
 					node := tree.FindNode(hints)
 					if node == nil {

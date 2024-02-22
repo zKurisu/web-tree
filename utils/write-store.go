@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"web-tree/conf"
 )
 
@@ -23,7 +24,7 @@ func (tree *Tree) WriteTree() error {
 		log.Fatal(err)
 	}
 
-	filePath := tree.GetFile()
+	filePath := getRootSubTreeFile(tree.Name)
 	fd, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
@@ -43,11 +44,11 @@ func (tree *Tree) WriteTree() error {
 
 func WriteAll() error {
 	// log.Println("Begin Write")
-	for _, tree := range RootTree.SubTrees {
+	for _, tree := range RootTree.GetAllSubtree() {
 		if tree.IsUpdate() {
 			// log.Println("Tree " + tree.Name + " is updated")
 			if err := tree.WriteTree(); err != nil {
-				return errors.New("Wrong when Write " + tree.Name)
+				return errors.New("Wrong when Write " + tree.GetTreeName())
 			}
 		}
 		//       else {
@@ -58,10 +59,10 @@ func WriteAll() error {
 }
 
 // Create a file under the data dir
-func addTree(name string) {
+func addRootSubTree(name string) {
 	if name == "" {
 		log.Fatal("Can not use empty as name")
-	} else if IsInList(GetAllTreeName(), AddFileExtention(name)) {
+	} else if IsInList(RootTree.GetAllSubtreeName(), AddFileExtention(name)) {
 		log.Fatal("Already exit " + name + ".yaml")
 	}
 	path := filepath.Join(conf.GetStoreDir(), AddFileExtention(name))
@@ -84,45 +85,64 @@ func addTree(name string) {
 }
 
 // Delete the file under the data dir
-func delTree(name string) {
+func delRootSubTree(name string) {
 	Backup(name)
 	if name == "" {
 		log.Fatal("Can not use empty as name")
-	} else if !IsInList(GetAllTreeName(), RemoveFileExtention(name)) {
+	} else if !IsInList(RootTree.GetAllSubtreeName(), RemoveFileExtention(name)) {
 		log.Fatal("Does not exit " + name + ".yaml")
 	}
 	path := filepath.Join(conf.GetStoreDir(), AddFileExtention(name))
 	os.Remove(path)
 }
 
-func (tree *Tree) AddNewSubTree(name string) {
-	if tree.Name == "root" {
-		addTree(name)
+func (tree *Tree) AddNewSubTree(name string) error {
+	if tree.GetTreeName() != "root" {
+		name = tree.subTreeNameWrap(name)
+	}
+	// log.Println("Before check exist, tree is " + tree.GetTreeName())
+	if IsInList(tree.GetAllSubtreeName(), name) {
+		return errors.New("In function [AddNewSubTree], subtree " + name + " already exist for " + tree.GetTreeName())
+	} else if name == "" {
+		return errors.New("In function [AddNewSubTree], subtree name can not be empty")
+	}
+	// log.Println("After check exist")
+	if tree.GetTreeName() == "root" {
+		addRootSubTree(name)
 	}
 	newTree, err := NewTree(name)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	tree.SubTrees = append(tree.SubTrees, newTree)
+	return nil
 }
 
-func (tree *Tree) DeepAddNewSubTree(names []string) error {
-	if len(names) == 0 {
-		return nil
+func (tree *Tree) DeepAddNewSubTree(name string) error {
+	levels := SplitTreeLevel(name)
+	curLevel := levels[0]
+	// log.Println("Before adding " + curLevel + " to tree " + tree.GetTreeName())
+	tree.AddNewSubTree(curLevel)
+
+	if len(levels) > 1 {
+		remainLevels := levels[1:]
+		name = strings.Join(remainLevels, "/")
+		if tree.GetTreeName() == "root" {
+			tree.FindSubTree(curLevel).DeepAddNewSubTree(name)
+		} else {
+			tree.FindSubTree(tree.subTreeNameWrap(curLevel)).DeepAddNewSubTree(name)
+		}
 	}
-	if !IsInList(tree.GetSubtreesName(), names[0]) {
-		tree.AddNewSubTree(names[0])
-	}
-	return tree.FindSubTree(names[0]).DeepAddNewSubTree(names[1:])
+	return nil
 }
 
-func (tree *Tree) AddSubTree(subtree *Tree) {
+func (tree *Tree) AppendSubTree(subtree *Tree) {
 	tree.SubTrees = append(tree.SubTrees, subtree)
 }
 
 func (tree *Tree) DelSubTree(name string) {
 	if tree.Name == "root" {
-		delTree(name)
+		delRootSubTree(name)
 	}
 	list := []*Tree{}
 	for _, subtree := range tree.SubTrees {
@@ -133,7 +153,24 @@ func (tree *Tree) DelSubTree(name string) {
 	tree.SubTrees = list
 }
 
-func (tree *Tree) AddNode(node *Node) {
+func (tree *Tree) DeepDelSubTree(name string) error {
+	levels := SplitTreeLevel(name)
+	if len(levels) > 1 {
+		targetTreeName := strings.Join(levels[:len(levels)-1], "/")
+		targetSubTreeName := levels[len(levels)-1]
+		targetTree := tree.DeepFindSubTree(targetTreeName)
+		if targetTree != nil {
+			targetTree.DelSubTree(targetSubTreeName)
+		} else {
+			return errors.New("Tree " + targetTreeName + " does not exist")
+		}
+	} else {
+		tree.DelSubTree(name)
+	}
+	return nil
+}
+
+func (tree *Tree) AppendNode(node *Node) {
 	tree.Nodes = append(tree.Nodes, node)
 }
 
@@ -158,4 +195,8 @@ func (tree *Tree) DelNode(hints []string) {
 		}
 		tree.Nodes = list
 	}
+}
+
+func (tree *Tree) subTreeNameWrap(name string) string {
+	return tree.Name + "/" + name
 }

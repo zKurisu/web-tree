@@ -30,35 +30,22 @@ var (
 			root := utils.GetRootTree()
 
 			for _, name := range nameList {
-				treeLevels := utils.SplitTreeLevel(name)
-				if root.DeepFindSubTree(treeLevels) == nil {
+				if root.DeepFindSubTree(name) == nil {
 					return errors.New(name + " does not exist")
-				} else if len(treeLevels) > 1 {
+				} else {
 					if !isNode {
-						root.DeepFindSubTree(treeLevels[:len(treeLevels)-1]).DelSubTree(treeLevels[len(treeLevels)-1])
+						root.DeepDelSubTree(name)
 						log.Println("Delete " + name + "....")
 					} else if alias != "" {
 						// log.Println(root.DeepFindSubTree(treeLevels).Nodes)
 						// spew.Dump(root.DeepFindSubTree(treeLevels))
-						root.DeepFindSubTree(treeLevels).DelNode(aliasList)
+						root.DeepFindSubTree(name).DelNode(aliasList)
 						// spew.Dump(root.DeepFindSubTree(treeLevels))
 						// log.Println(root.DeepFindSubTree(treeLevels).Nodes)
 						log.Println("Delete node with alias [" + alias + "] under " + name + "....")
 					} else if link != "" {
-						root.DeepFindSubTree(treeLevels).DelNode(linkList)
+						root.DeepFindSubTree(name).DelNode(linkList)
 						log.Println("Delete node with link [" + link + "] under " + name + "....")
-					} else {
-						return errors.New("An alias or a link is needed to delete a node")
-					}
-				} else {
-					if !isNode {
-						root.DelSubTree(treeLevels[0])
-					} else if alias != "" {
-						root.FindSubTree(treeLevels[0]).DelNode(aliasList)
-						log.Println("Delete node with alias [" + alias + "] under " + name + "....")
-					} else if link != "" {
-						root.FindSubTree(treeLevels[0]).DelNode(linkList)
-						log.Println("Delete node with alias [" + link + "] under " + name + "....")
 					} else {
 						return errors.New("An alias or a link is needed to delete a node")
 					}

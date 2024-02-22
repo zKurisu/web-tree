@@ -12,7 +12,7 @@ import (
 
 var RootTree = Tree{
 	Name:     "root",
-	SubTrees: getAllTree(),
+	SubTrees: getAllRootSubTree(),
 	Nodes:    []*Node{},
 }
 
@@ -64,7 +64,7 @@ func NewNode(links []string, alias []string, desc []string, icon string, labels 
 	}, nil
 }
 
-func GetAllTreeName() []string {
+func getAllRootSubtreeName() []string {
 	list := []string{}
 	pattern := regexp.QuoteMeta(`.yaml`)
 	re := regexp.MustCompile(pattern + `$`)
@@ -88,11 +88,11 @@ func GetAllTreeName() []string {
 	return list
 }
 
-func getTree(name string) *Tree {
+func getRootSubTree(name string) *Tree {
 	var t *Tree = nil
-	treeList := GetAllTreeName()
+	allRootSubTreeName := getAllRootSubtreeName()
 
-	if IsInList(treeList, name) {
+	if IsInList(allRootSubTreeName, name) {
 		treePath := filepath.Join(STORE_DIR, AddFileExtention(name))
 		yamlContent, err := os.ReadFile(treePath)
 		if err != nil {
@@ -106,27 +106,16 @@ func getTree(name string) *Tree {
 	return t
 }
 
-func getAllTree() []*Tree {
+func getAllRootSubTree() []*Tree {
 	list := []*Tree{}
-	for _, name := range GetAllTreeName() {
-		list = append(list, getTree(name))
+	for _, name := range getAllRootSubtreeName() {
+		list = append(list, getRootSubTree(name))
 	}
 	return list
 }
 
 func GetRootTree() *Tree {
 	return &RootTree
-}
-
-func GetTree(name string) *Tree {
-	if IsTreeExist(name) {
-		for _, tree := range RootTree.GetAllSubtree() {
-			if tree.Name == name {
-				return tree
-			}
-		}
-	}
-	return nil
 }
 
 func (tree *Tree) FindSubTree(name string) *Tree {
@@ -138,34 +127,39 @@ func (tree *Tree) FindSubTree(name string) *Tree {
 	return nil
 }
 
-func (tree *Tree) DeepFindSubTree(names []string) *Tree {
-	if len(names) == 0 {
-		return tree
-	}
-	if !IsInList(tree.GetSubtreesName(), names[0]) {
+func (tree *Tree) DeepFindSubTree(name string) *Tree {
+	if len(tree.GetAllSubtree()) == 0 {
 		return nil
 	}
-	return tree.FindSubTree(names[0]).DeepFindSubTree(names[1:])
-}
-
-func (tree *Tree) FindAllSubTree(name string) []*Tree {
-	list := []*Tree{}
-	if len(tree.SubTrees) == 0 {
-		return list
-	}
-	for _, subtree := range tree.SubTrees {
-		if subtree.Name == name {
-			list = append(list, subtree)
-		}
-		if len(subtree.SubTrees) != 0 {
-			for _, subsubtree := range subtree.FindAllSubTree(name) {
-				list = append(list, subsubtree)
+	t := tree.FindSubTree(name)
+	if t == nil {
+		for _, sub := range tree.GetAllSubtree() {
+			t = sub.DeepFindSubTree(name)
+			if t != nil {
+				return t
 			}
 		}
 	}
-	return list
+	return t
 }
 
+//	func (tree *Tree) FindAllSubTree(name string) []*Tree {
+//		list := []*Tree{}
+//		if len(tree.SubTrees) == 0 {
+//			return list
+//		}
+//		for _, subtree := range tree.SubTrees {
+//			if subtree.Name == name {
+//				list = append(list, subtree)
+//			}
+//			if len(subtree.SubTrees) != 0 {
+//				for _, subsubtree := range subtree.FindAllSubTree(name) {
+//					list = append(list, subsubtree)
+//				}
+//			}
+//		}
+//		return list
+//	}
 func (tree *Tree) FindNodes(hints []string) []*Node {
 	nodeList := []*Node{}
 	if len(tree.Nodes) != 0 {

@@ -35,9 +35,8 @@ var addCmd = &cobra.Command{
 		root := utils.GetRootTree()
 
 		for _, name := range nameList {
-			treeLevels := utils.SplitTreeLevel(name)
-			root.DeepAddNewSubTree(treeLevels)
-			tree := root.DeepFindSubTree(treeLevels)
+			root.DeepAddNewSubTree(name)
+			tree := root.DeepFindSubTree(name)
 
 			if isNode {
 				if alias == "" && link == "" {
@@ -54,7 +53,7 @@ var addCmd = &cobra.Command{
 				if err != nil {
 					log.Fatal(err)
 				}
-				tree.AddNode(node)
+				tree.AppendNode(node)
 
 			} else if alias != "" || link != "" || desc != "" || label != "" {
 				return errors.New("Flag link, alias, desc, label should be used with --node")
