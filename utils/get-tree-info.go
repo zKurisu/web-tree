@@ -38,3 +38,12 @@ func (tree Tree) GetSubtreesName() []string {
 func (tree Tree) GetNodes() []*Node {
 	return tree.Nodes
 }
+
+func (tree Tree) DeepGetAllNodeWithPath(curPath string) []string {
+	list := []string{}
+	if len(tree.GetAllSubtree()) == 0 {
+		return list
+	}
+
+	return RemoveEmp(list)
+}
