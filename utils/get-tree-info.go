@@ -4,6 +4,15 @@ func (tree Tree) GetTreeName() string {
 	return tree.Name
 }
 
+func (tree Tree) GetTreeBaseName() string {
+	levels := SplitTreeLevel(tree.Name)
+	name := tree.GetTreeName()
+	if len(levels) > 1 {
+		name = levels[len(levels)-1]
+	}
+	return name
+}
+
 func (tree Tree) GetAllSubtree() []*Tree {
 	return tree.SubTrees
 }

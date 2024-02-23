@@ -20,10 +20,12 @@ type Model struct {
 	root           utils.Tree
 	suggestionList []string
 	items          []string
+	itemSelected   selected
 	sugSelected    selected
 	content        string
 	keymap         keyMap
 	ready          bool
+	toggle         bool
 	mode           Mode
 	debug          string
 }
@@ -94,7 +96,12 @@ var (
 	searchBoxWidth  = 5
 	searchBoxHeight = 5
 
-	noStyle                 = lipgloss.NewStyle()
+	paginatorHeight = 5
+
+	noStyle       = lipgloss.NewStyle()
+	activeStyle   = noStyle.Copy().Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"})
+	inactiveStyle = noStyle.Copy().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"})
+
 	searchBoxStyle          = lipgloss.NewStyle()
 	suggestionBoxStyle      = lipgloss.NewStyle()
 	suggestionTreeStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#248"))
@@ -103,15 +110,25 @@ var (
 	suggestionMatchedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#eeee92"))
 	suggestionSelectedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#e78"))
 
-	viewBoxStyle = lipgloss.NewStyle()
+	viewBoxStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
 
-	browserStyle     = lipgloss.NewStyle()
-	treeStyle        = lipgloss.NewStyle()
-	nodeStyle        = lipgloss.NewStyle()
-	shakeStyle       = lipgloss.NewStyle()
-	branchStyle      = lipgloss.NewStyle()
-	activeDotStyle   = lipgloss.NewStyle()
-	inactiveDotStyle = lipgloss.NewStyle()
+	treeTabBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
+	treeTabBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder())
+
+	treeBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
+	treeBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder())
+
+	nodeBoxStyle    = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
+	nodeBoxSelected = activeStyle.Copy().Border(lipgloss.RoundedBorder())
+	linkStyle       = noStyle.Copy().Foreground(lipgloss.Color("#9338f9"))
+	aliasStyle      = noStyle.Copy().Foreground(lipgloss.Color("#933909"))
+
+	browserStyle = lipgloss.NewStyle()
+	shakeStyle   = lipgloss.NewStyle()
+	branchStyle  = lipgloss.NewStyle()
+
+	activeDotStyle   = activeStyle.Copy()
+	inactiveDotStyle = inactiveStyle.Copy()
 
 	keymap = keyMap{
 		UP: key.NewBinding(

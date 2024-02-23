@@ -61,9 +61,11 @@ func InitialModel() Model {
 		searchInput:    inputInit(),
 		paginator:      paginatorInit(),
 		suggestionList: SuggestionInit(),
+		itemSelected:   selected{index: 0},
 		sugSelected:    selected{index: 0},
 		items:          root.GetAllSubtreeName(),
 		keymap:         keymap,
+		toggle:         false,
 		root:           root,
 		mode:           search,
 	}

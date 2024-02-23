@@ -13,7 +13,7 @@ var rootCmd = &cobra.Command{
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Open the TUI
-		p := tea.NewProgram(ui.InitialModel())
+		p := tea.NewProgram(ui.InitialModel(), tea.WithAltScreen())
 		if _, err := p.Run(); err != nil {
 			log.Fatal(err)
 		}
