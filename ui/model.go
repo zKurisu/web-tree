@@ -23,10 +23,13 @@ type Model struct {
 	tabSelected    selected
 	sugSelected    selected
 	subSelected    point
+	subMsgs        subMsg
 	content        string
 	keymap         keyMap
 	ready          bool
 	toggle         bool
+	detail         bool
+	helpToggle     bool
 	mode           Mode
 	debug          string
 }
@@ -69,6 +72,10 @@ type nodeMsg struct {
 	path  string
 	link  []string
 	alias []string
+}
+
+type subMsg struct {
+	ylen []int
 }
 
 type Mode int
@@ -124,16 +131,18 @@ var (
 	treeTabBoxSelectedStyle = activeStyle.Copy()
 
 	treeBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
-	treeBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder())
+	treeBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder()).Background(lipgloss.Color("#476"))
 
 	nodeBoxStyle    = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
-	nodeBoxSelected = activeStyle.Copy().Border(lipgloss.RoundedBorder())
+	nodeBoxSelected = activeStyle.Copy().Border(lipgloss.RoundedBorder()).Background(lipgloss.Color("#476"))
 	linkStyle       = noStyle.Copy().Foreground(lipgloss.Color("#9338f9"))
 	aliasStyle      = noStyle.Copy().Foreground(lipgloss.Color("#933909"))
 
 	browserStyle = lipgloss.NewStyle()
 	shakeStyle   = lipgloss.NewStyle()
 	branchStyle  = lipgloss.NewStyle()
+
+	helpStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
 
 	activeDotStyle   = activeStyle.Copy()
 	inactiveDotStyle = inactiveStyle.Copy()
@@ -212,16 +221,21 @@ var (
 			key.WithHelp("ctrl+c", "Quit"),
 		),
 		HELP: key.NewBinding(
-			key.WithKeys("ctrl+h"),
-			key.WithHelp("ctrl+h", "Toggle short or long help"),
+			key.WithKeys("?"),
+			key.WithHelp("?", "Toggle short or long help"),
 		),
 	}
 )
 
-func (k keyMap) ShortHelp() []keyMap {
-	return nil
+func (k keyMap) ShortHelp() []key.Binding {
+	return []key.Binding{
+		k.HELP, k.QUIT, k.SWITCH,
+	}
 }
 
-func (k keyMap) FullHelp() [][]keyMap {
-	return nil
+func (k keyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.UP, k.DOWN, k.LEFT, k.RIGHT},
+		{k.HELP, k.QUIT, k.SWITCH},
+	}
 }

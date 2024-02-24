@@ -55,18 +55,22 @@ func paginatorInit() paginator.Model {
 
 func InitialModel() Model {
 	root := utils.RootTree
+	h := help.New()
+	h.ShowAll = false
 
 	return Model{
-		help:           help.New(),
+		help:           h,
 		searchInput:    inputInit(),
 		paginator:      paginatorInit(),
 		suggestionList: SuggestionInit(),
 		tabSelected:    selected{index: 0},
 		sugSelected:    selected{index: 0},
 		subSelected:    point{x: 0, y: 0},
+		subMsgs:        subMsg{ylen: []int{0}},
 		tabs:           root.GetAllSubtreeName(),
 		keymap:         keymap,
 		toggle:         false,
+		helpToggle:     false,
 		root:           root,
 		mode:           search,
 	}

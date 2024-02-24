@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"strconv"
+	"strings"
 	"web-tree/utils"
 )
 
@@ -36,12 +37,20 @@ func (m *Model) updateContent() {
 	root := utils.RootTree
 	selectedContent, _ := m.tabSelected.content.(string)
 	t := root.FindSubTree(selectedContent)
-	m.content = m.getTreeView(t)
+	m.subMsgs.ylen = []int{0}
+	m.content = m.getTreeView(t, 1)
 	m.viewport.SetContent(m.content)
 }
 
-func (m *Model) AfterModeChange() {
-
+func (m *Model) afterModeChange() {
+	switch m.mode {
+	case search:
+		m.searchInput.ShowSuggestions = true
+	case display:
+		m.searchInput.ShowSuggestions = false
+		m.searchInput.SetValue("")
+		m.searchInput.Blur()
+	}
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -51,7 +60,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.debug = "Width: " + strconv.Itoa(msg.Width) + "  " + "Height: " + strconv.Itoa(msg.Height)
 		searchBoxHeight := lipgloss.Height(m.searchView())
-		// suggestionListHeight := lipgloss.Height(m.suggestionListView())
 		treeTabHeight := lipgloss.Height(m.treeTabView())
 		helpHeight := lipgloss.Height(m.helpView())
 		footerHeight := lipgloss.Height(m.footerView())
@@ -68,7 +76,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.viewport.Width = msg.Width / 2
 			m.viewport.Height = msg.Height - verticalMarginHeight
-			count++
 		}
 
 	case tea.KeyMsg:
@@ -82,6 +89,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.sugSelected.index = len(m.searchInput.AvailableSuggestions()) - 1
 					}
 				}
+			case display:
+				if msg.String() == m.keymap.UP.Keys()[1] {
+					m.subSelected.x = 0
+					m.subSelected.y--
+					if m.subSelected.y < 0 {
+						m.subSelected.y = 0
+					}
+				}
 			}
 		case key.Matches(msg, m.keymap.DOWN):
 			switch m.mode {
@@ -90,6 +105,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.sugSelected.index++
 					if m.sugSelected.index >= len(m.searchInput.AvailableSuggestions()) {
 						m.sugSelected.index = 0
+					}
+				}
+			case display:
+				if msg.String() == m.keymap.DOWN.Keys()[1] {
+					m.subSelected.x = 0
+					m.subSelected.y++
+					if m.subSelected.y > len(m.subMsgs.ylen)-1 {
+						m.subSelected.y = len(m.subMsgs.ylen) - 1
 					}
 				}
 			}
@@ -110,19 +133,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				if msg.String() == m.keymap.LEFT.Keys()[1] {
 					// tab selected part
-					m.tabSelected.index--
-					if m.tabSelected.index == start-1 {
-						m.paginator.PrevPage()
-					}
-					if m.tabSelected.index < 0 {
-						m.tabSelected.index = 0
+					if m.subSelected.y == 0 {
+						m.tabSelected.index--
+						if m.tabSelected.index == start-1 {
+							m.paginator.PrevPage()
+						}
+						if m.tabSelected.index < 0 {
+							m.tabSelected.index = 0
+						}
+					} else {
+						// point selected part
+						m.subSelected.x--
+						if m.subSelected.x < 0 {
+							m.subSelected.x = 0
+						}
 					}
 
-					// point selected part
-					m.subSelected.x--
-					if m.subSelected.x < 0 {
-						m.subSelected.x = 0
-					}
 				}
 			}
 		case key.Matches(msg, m.keymap.RIGHT):
@@ -141,17 +167,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 				if msg.String() == m.keymap.RIGHT.Keys()[1] {
-					// tab selected part
-					m.tabSelected.index++
-					if m.tabSelected.index == end {
-						m.paginator.NextPage()
-					}
-					if m.tabSelected.index > len(m.tabs)-1 {
-						m.tabSelected.index = len(m.tabs) - 1
+					if m.subSelected.y == 0 {
+						// tab selected part
+						m.tabSelected.index++
+						if m.tabSelected.index == end {
+							m.paginator.NextPage()
+						}
+						if m.tabSelected.index > len(m.tabs)-1 {
+							m.tabSelected.index = len(m.tabs) - 1
+						}
+					} else {
+						// point selected part
+						m.subSelected.x++
+						if m.subSelected.x > m.subMsgs.ylen[m.subSelected.y]-1 {
+							m.subSelected.x = m.subMsgs.ylen[m.subSelected.y] - 1
+						}
 					}
 
-					// point selected part
-					m.subSelected.x++
 				}
 			}
 		case key.Matches(msg, m.keymap.DELETE):
@@ -195,14 +227,34 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case search:
 				if len(m.suggestionList) != 0 {
 					m.searchInput.SetValue(m.searchInput.AvailableSuggestions()[m.sugSelected.index])
+					m.searchInput.CursorEnd()
+					v := m.searchInput.Value()
+					m.searchInput.SetValue("")
+
+					tabTarget := ""
+					if v[:len(nodePrefix)] == nodePrefix {
+						m.sugSelected.content = getNodeMsg(v)
+					} else if v[:len(treePrefix)] == treePrefix {
+						m.sugSelected.content = getTreeMsg(v)
+					}
+
+					switch content := m.sugSelected.content.(type) {
+					case nodeMsg:
+						hint := append(content.link, content.alias...)
+						m.subSelected.content = utils.RootTree.DeepFindSubTree(content.path).FindNode(hint)
+						tabTarget = strings.Split(content.path, "/")[0]
+					case treeMsg:
+						tabTarget = strings.Split(content.path, "/")[0]
+					}
+
+					for i, tab := range m.tabs {
+						if tab == tabTarget {
+							m.tabSelected.index = i
+						}
+					}
+					m.mode = display
 				}
-				m.searchInput.CursorEnd()
-				v := m.searchInput.Value()
-				if v[:len(nodePrefix)] == nodePrefix {
-					m.sugSelected.content = getNodeMsg(v)
-				} else if v[:len(treePrefix)] == treePrefix {
-					m.sugSelected.content = getTreeMsg(v)
-				}
+				// Then set tabSelected index and subSelected x, y
 			}
 		case key.Matches(msg, m.keymap.CLEAR):
 			switch m.mode {
@@ -234,12 +286,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case key.Matches(msg, m.keymap.HELP):
+			m.helpToggle = !m.helpToggle
+			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keymap.QUIT):
 			return m, tea.Quit
 		}
 	}
 
 	m.updateContent()
+	m.afterModeChange()
 	m.updateSuggestionList()
 	cmds = m.updateUIComponents(msg)
 

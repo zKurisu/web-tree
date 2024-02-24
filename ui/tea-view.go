@@ -47,7 +47,7 @@ func (m Model) allTreeView() string {
 	return ""
 }
 
-func (m Model) treeTabView() string {
+func (m *Model) treeTabView() string {
 	var b strings.Builder
 	renderedTabs := []string{}
 
@@ -65,46 +65,84 @@ func (m Model) treeTabView() string {
 }
 
 // not conclude tree name itself, first subtree, then node
-func (m Model) getTreeView(t *utils.Tree) string {
+func (m *Model) getTreeView(t *utils.Tree, y int) string {
 	var b strings.Builder
+	var x int = 0
 	rendered := []string{}
 
 	if len(t.GetAllSubtree()) > 0 {
 		for _, sub := range t.GetAllSubtree() {
-			rendered = append(rendered, m.getRenderedTreeName(sub))
+			if y == m.subSelected.y && x == m.subSelected.x {
+				rendered = append(rendered, treeBoxSelectedStyle.Render(sub.GetTreeName()))
+			} else {
+				rendered = append(rendered, m.getRenderedTreeName(sub))
+			}
+			x++
 		}
 	}
 	if len(t.GetNodes()) > 0 {
 		for _, node := range t.GetNodes() {
-			rendered = append(rendered, m.getNodeView(node))
+			// Is selected in search mode
+			switch selectedNode := m.subSelected.content.(type) {
+			case *utils.Node:
+				if selectedNode == node {
+					m.subSelected.x = x
+					m.subSelected.y = y
+					m.subSelected.content = nil
+				}
+			}
+
+			if y == m.subSelected.y && x == m.subSelected.x {
+				m.detail = true
+				rendered = append(rendered, nodeBoxSelected.Render(m.getNodeView(node)))
+				m.detail = false
+			} else {
+				rendered = append(rendered, nodeBoxStyle.Render(m.getNodeView(node)))
+			}
+			x++
 		}
 	}
+
+	m.subMsgs.ylen = append(m.subMsgs.ylen, x)
 	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, rendered...))
 	b.WriteString("\n")
 
 	if len(t.GetAllSubtree()) > 0 {
-		b.WriteString(m.getTreeView(t.GetAllSubtree()[0]))
+		y++
+		b.WriteString(m.getTreeView(t.GetAllSubtree()[0], y))
 	}
 
 	return b.String()
 }
 
 func (m Model) getRenderedTreeName(t *utils.Tree) string {
-	return treeBoxStyle.Render(t.GetTreeName())
+	return treeBoxStyle.Render(t.GetTreeBaseName())
 }
 
 func (m Model) getNodeView(n *utils.Node) string {
 	s := ""
-	if m.toggle == false {
-		s = s + linkStyle.Render(n.Link[0])
-	} else {
+	switch {
+	case m.detail:
+		s = s + m.expandNodeView(n)
+	case m.toggle:
 		s = s + aliasStyle.Render(n.Alias[0])
+	default:
+		s = s + linkStyle.Render(n.Link[0])
 	}
-	return nodeBoxStyle.Render(s)
+
+	return s
 }
 
-func (m Model) getDetailNodeView(n *utils.Node) string {
-	return ""
+func (m Model) expandNodeView(n *utils.Node) string {
+	var b strings.Builder
+	b.WriteString("links: " + strings.Join(n.Link, " "))
+	b.WriteString("\n")
+	b.WriteString("alias: " + strings.Join(n.Alias, " "))
+	b.WriteString("\n")
+	b.WriteString("description: " + strings.Join(n.Desc, " "))
+	b.WriteString("\n")
+	b.WriteString("label: " + strings.Join(n.Label, " "))
+	return b.String()
 }
 
 func (m Model) paginatorView() string {
@@ -125,6 +163,14 @@ func (m Model) singleTreeView() string {
 }
 
 func (m Model) helpView() string {
+	return m.help.View(m.keymap)
+}
+
+func (m Model) headerView() string {
+	return ""
+}
+
+func (m Model) bodyView() string {
 	return ""
 }
 
@@ -145,8 +191,10 @@ func (m Model) debugView() string {
 	}
 	return s + " " + m.debug + "\n" + "start: " + strconv.Itoa(start) +
 		"\n" + "end: " + strconv.Itoa(end) +
-		"\n" + "selected index: " + strconv.Itoa(m.tabSelected.index) +
-		"\n" + "viewport YPosition: " + strconv.Itoa(m.viewport.YPosition)
+		// "\n" + "selected index: " + strconv.Itoa(m.tabSelected.index) +
+		// "\n" + "point x, y: " + strconv.Itoa(m.subSelected.x) + " " + strconv.Itoa(m.subSelected.y) +
+		// "\n" + strconv.Itoa(len(m.subMsgs.ylen))
+		"\n" + strconv.Itoa(count)
 }
 
 func (m Model) View() string {
@@ -158,8 +206,6 @@ func (m Model) View() string {
 	var displayBox strings.Builder
 	var replaceLen int = 0
 	searchBox.WriteString(m.searchView())
-	searchBox.WriteString("\n")
-	searchBox.WriteString("\n")
 	searchBox.WriteString("\n")
 	// searchBox.WriteString(m.suggestionListView())
 	// searchBox.WriteString("\n")
@@ -182,17 +228,18 @@ func (m Model) View() string {
 	}
 	displayBytes = append(suggestionListBytes[:replaceLen], displayBytes[replaceLen:]...)
 
-	s := searchBox.String() + string(displayBytes)
-	// nodemsg := nodeMsg{}
-	// treemsg := treeMsg{}
-	// if m.sugSelected.content != nil {
-	// 	switch msg := m.sugSelected.content.(type) {
-	// 	case nodeMsg:
-	// 		nodemsg = msg
-	// 	case treeMsg:
-	// 		treemsg = msg
-	// 	}
-	// }
+	if m.helpToggle == true {
+		count++
+		helpBytes := []byte(m.helpView())
+		if len(helpBytes) > len(displayBytes) {
+			replaceLen = len(displayBytes)
+		} else {
+			replaceLen = len(helpBytes)
+		}
+		displayBytes = append(helpBytes[:replaceLen], displayBytes[replaceLen:]...)
+	}
+
+	s := searchBox.String() + string(displayBytes) + m.helpView()
 
 	// return lipgloss.PlaceHorizontal(150, 0.5, b.String())
 	return s
