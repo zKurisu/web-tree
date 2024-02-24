@@ -31,10 +31,10 @@ func (m *Model) updateUIComponents(msg tea.Msg) []tea.Cmd {
 }
 
 func (m *Model) updateContent() {
-	m.itemSelected.content = m.items[m.itemSelected.index]
+	m.tabSelected.content = m.tabs[m.tabSelected.index]
 
 	root := utils.RootTree
-	selectedContent, _ := m.itemSelected.content.(string)
+	selectedContent, _ := m.tabSelected.content.(string)
 	t := root.FindSubTree(selectedContent)
 	m.content = m.getTreeView(t)
 	m.viewport.SetContent(m.content)
@@ -101,17 +101,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.searchInput.SetCursor(posi - 1)
 				}
 			case display:
-				start, _ := m.paginator.GetSliceBounds(len(m.items))
+				start, _ := m.paginator.GetSliceBounds(len(m.tabs))
 				if msg.String() == m.keymap.LEFT.Keys()[0] {
-					m.paginator.PrevPage()
-				}
-				if msg.String() == m.keymap.LEFT.Keys()[1] {
-					m.itemSelected.index--
-					if m.itemSelected.index == start-1 {
+					if start > 0 {
+						m.tabSelected.index = start - 1
 						m.paginator.PrevPage()
 					}
-					if m.itemSelected.index < 0 {
-						m.itemSelected.index = 0
+				}
+				if msg.String() == m.keymap.LEFT.Keys()[1] {
+					// tab selected part
+					m.tabSelected.index--
+					if m.tabSelected.index == start-1 {
+						m.paginator.PrevPage()
+					}
+					if m.tabSelected.index < 0 {
+						m.tabSelected.index = 0
+					}
+
+					// point selected part
+					m.subSelected.x--
+					if m.subSelected.x < 0 {
+						m.subSelected.x = 0
 					}
 				}
 			}
@@ -123,18 +133,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.searchInput.SetCursor(posi + 1)
 				}
 			case display:
-				_, end := m.paginator.GetSliceBounds(len(m.items))
+				_, end := m.paginator.GetSliceBounds(len(m.tabs))
 				if msg.String() == m.keymap.RIGHT.Keys()[0] {
-					m.paginator.NextPage()
-				}
-				if msg.String() == m.keymap.RIGHT.Keys()[1] {
-					m.itemSelected.index++
-					if m.itemSelected.index == end {
+					if end < len(m.tabs) {
+						m.tabSelected.index = end
 						m.paginator.NextPage()
 					}
-					if m.itemSelected.index > len(m.items)-1 {
-						m.itemSelected.index = len(m.items) - 1
+				}
+				if msg.String() == m.keymap.RIGHT.Keys()[1] {
+					// tab selected part
+					m.tabSelected.index++
+					if m.tabSelected.index == end {
+						m.paginator.NextPage()
 					}
+					if m.tabSelected.index > len(m.tabs)-1 {
+						m.tabSelected.index = len(m.tabs) - 1
+					}
+
+					// point selected part
+					m.subSelected.x++
 				}
 			}
 		case key.Matches(msg, m.keymap.DELETE):

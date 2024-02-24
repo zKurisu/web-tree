@@ -51,9 +51,9 @@ func (m Model) treeTabView() string {
 	var b strings.Builder
 	renderedTabs := []string{}
 
-	start, end := m.paginator.GetSliceBounds(len(m.items))
-	for i, item := range m.items[start:end] {
-		if i+start == m.itemSelected.index {
+	start, end := m.paginator.GetSliceBounds(len(m.tabs))
+	for i, item := range m.tabs[start:end] {
+		if i+start == m.tabSelected.index {
 			renderedTabs = append(renderedTabs, treeTabBoxSelectedStyle.Render(item))
 		} else {
 			renderedTabs = append(renderedTabs, treeTabBoxStyle.Render(item))
@@ -133,7 +133,7 @@ func (m Model) footerView() string {
 }
 
 func (m Model) debugView() string {
-	start, end := m.paginator.GetSliceBounds(len(m.items))
+	start, end := m.paginator.GetSliceBounds(len(m.tabs))
 	s := ""
 	switch m.mode {
 	case search:
@@ -145,7 +145,7 @@ func (m Model) debugView() string {
 	}
 	return s + " " + m.debug + "\n" + "start: " + strconv.Itoa(start) +
 		"\n" + "end: " + strconv.Itoa(end) +
-		"\n" + "selected index: " + strconv.Itoa(m.itemSelected.index) +
+		"\n" + "selected index: " + strconv.Itoa(m.tabSelected.index) +
 		"\n" + "viewport YPosition: " + strconv.Itoa(m.viewport.YPosition)
 }
 
@@ -170,7 +170,8 @@ func (m Model) View() string {
 	displayBox.WriteString("\n")
 	displayBox.WriteString(m.paginatorView())
 	displayBox.WriteString("\n")
-	displayBox.WriteString(strconv.Itoa(count))
+	displayBox.WriteString(m.debugView())
+	displayBox.WriteString("\n")
 
 	suggestionListBytes := []byte(m.suggestionListView())
 	displayBytes := []byte(displayBox.String())

@@ -19,9 +19,10 @@ type Model struct {
 	viewport       viewport.Model
 	root           utils.Tree
 	suggestionList []string
-	items          []string
-	itemSelected   selected
+	tabs           []string
+	tabSelected    selected
 	sugSelected    selected
+	subSelected    point
 	content        string
 	keymap         keyMap
 	ready          bool
@@ -52,6 +53,11 @@ type keyMap struct {
 
 type selected struct {
 	index   int
+	content interface{}
+}
+
+type point struct {
+	x, y    int
 	content interface{}
 }
 
@@ -112,8 +118,10 @@ var (
 
 	viewBoxStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
 
-	treeTabBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
-	treeTabBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder())
+	// treeTabBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
+	// treeTabBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder())
+	treeTabBoxStyle         = inactiveStyle.Copy()
+	treeTabBoxSelectedStyle = activeStyle.Copy()
 
 	treeBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
 	treeBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder())
