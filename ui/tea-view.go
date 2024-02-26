@@ -14,31 +14,74 @@ func (m Model) browserView() string {
 }
 
 func (m Model) searchView() string {
-	return m.searchInput.View()
+	switch m.mode {
+	case search:
+		return m.searchInput.View()
+	case advancedSearch:
+		var s string
+		for i := range m.adSearchInput {
+			s = s + m.adSearchInput[i].View() + "\n"
+		}
+		s = s + adSearchSubmitStyle.Render("Search")
+		return s
+	case add:
+		var s string
+		for i := range m.addInput {
+			s = s + m.addInput[i].View() + "\n"
+		}
+		s = s + adSearchSubmitStyle.Render("Add")
+		return s
+	default:
+		if m.lastMode == search {
+			return m.searchInput.View()
+		} else {
+			var s string
+			for i := range m.adSearchInput {
+				s = s + m.adSearchInput[i].View() + "\n"
+			}
+			s = s + adSearchSubmitStyle.Render("Search")
+			return s
+		}
+	}
 }
 
 func (m Model) suggestionListView() string {
 	var b strings.Builder
-	input := m.searchInput.Value()
-	renderTargets := []string{
-		treePrefix, nodePrefix, input,
-		nameHint, linkHint, aliasHint,
-		nodePathHint,
-	}
-	styles := []lipgloss.Style{
-		suggestionTreeStyle, suggestionNodeStyle, suggestionMatchedStyle,
-		suggestionQuoteStyle, suggestionQuoteStyle, suggestionQuoteStyle,
-		suggestionQuoteStyle,
-	}
-	for i, suggestion := range m.suggestionList {
-		suggestion = suggestion
-		suggestion = searchAndRender(suggestion, renderTargets, styles)
-		if i == m.sugSelected.index {
-			suggestion = suggestionSelectedStyle.Render(suggestionSelectedSuroundLeft) +
-				suggestion +
-				suggestionSelectedStyle.Render(suggestionSelectedSuroundRight)
+	switch m.mode {
+	case search:
+		input := m.searchInput.Value()
+		renderTargets := []string{
+			treePrefix, nodePrefix, input,
+			nameHint, linkHint, aliasHint,
+			nodePathHint,
 		}
-		b.WriteString(suggestion + "\n")
+		styles := []lipgloss.Style{
+			suggestionTreeStyle, suggestionNodeStyle, suggestionMatchedStyle,
+			suggestionQuoteStyle, suggestionQuoteStyle, suggestionQuoteStyle,
+			suggestionQuoteStyle,
+		}
+		for i, suggestion := range m.suggestionList {
+			suggestion = searchAndRender(suggestion, renderTargets, styles)
+			if i == m.sugSelected.index {
+				suggestion = suggestionSelectedStyle.Render(suggestionSelectedSuroundLeft) +
+					suggestion +
+					suggestionSelectedStyle.Render(suggestionSelectedSuroundRight)
+			}
+			b.WriteString(suggestion + "\n")
+		}
+	case advancedSearch:
+		i := m.adInpSelected.index
+		if i == len(m.adSearchInput) {
+			break
+		}
+		for j, suggestion := range m.adsuggestionList[i] {
+			if j == m.sugSelected.index {
+				suggestion = suggestionSelectedStyle.Render(suggestionSelectedSuroundLeft) +
+					suggestion +
+					suggestionSelectedStyle.Render(suggestionSelectedSuroundRight)
+			}
+			b.WriteString(suggestion + "\n")
+		}
 	}
 	return b.String()
 }
@@ -73,7 +116,20 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 	if len(t.GetAllSubtree()) > 0 {
 		for _, sub := range t.GetAllSubtree() {
 			if y == m.subSelected.y && x == m.subSelected.x {
-				rendered = append(rendered, treeBoxSelectedStyle.Render(sub.GetTreeName()))
+				m.subSelected.content = sub
+				treeName := sub.GetTreeName()
+
+				switch m.mode {
+				case edit:
+					height := lipgloss.Height(treeName)
+					width := lipgloss.Width(treeName)
+					m.textarea.SetWidth(width)
+					m.textarea.SetHeight(height)
+					m.textarea.SetValue(treeName)
+					rendered = append(rendered, treeBoxSelectedStyle.Render(m.textarea.View()))
+				default:
+					rendered = append(rendered, treeBoxSelectedStyle.Render(treeName))
+				}
 			} else {
 				rendered = append(rendered, m.getRenderedTreeName(sub))
 			}
@@ -83,16 +139,17 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 	if len(t.GetNodes()) > 0 {
 		for _, node := range t.GetNodes() {
 			// Is selected in search mode
-			switch selectedNode := m.subSelected.content.(type) {
+			switch selectedNode := m.subMsgs.searchedContent.(type) {
 			case *utils.Node:
 				if selectedNode == node {
 					m.subSelected.x = x
 					m.subSelected.y = y
-					m.subSelected.content = nil
+					m.subMsgs.searchedContent = nil
 				}
 			}
 
 			if y == m.subSelected.y && x == m.subSelected.x {
+				m.subSelected.content = node
 				m.detail = true
 				rendered = append(rendered, nodeBoxSelected.Render(m.getNodeView(node)))
 				m.detail = false
@@ -179,7 +236,7 @@ func (m Model) footerView() string {
 }
 
 func (m Model) debugView() string {
-	start, end := m.paginator.GetSliceBounds(len(m.tabs))
+	// start, end := m.paginator.GetSliceBounds(len(m.tabs))
 	s := ""
 	switch m.mode {
 	case search:
@@ -188,13 +245,26 @@ func (m Model) debugView() string {
 		s = "advancedSearch"
 	case display:
 		s = "display"
+	case add:
+		s = "add"
+	case edit:
+		s = "edit"
 	}
-	return s + " " + m.debug + "\n" + "start: " + strconv.Itoa(start) +
-		"\n" + "end: " + strconv.Itoa(end) +
-		// "\n" + "selected index: " + strconv.Itoa(m.tabSelected.index) +
-		// "\n" + "point x, y: " + strconv.Itoa(m.subSelected.x) + " " + strconv.Itoa(m.subSelected.y) +
-		// "\n" + strconv.Itoa(len(m.subMsgs.ylen))
-		"\n" + strconv.Itoa(count)
+
+	// switch m.subSelected.content.(type) {
+	// case *utils.Tree:
+	// 	m.debug = "Tree"
+	// case *utils.Node:
+	// 	m.debug = "Node"
+	// }
+
+	// return s + " " + m.debug + "\n" + "start: " + strconv.Itoa(start) +
+	// 	"\n" + "end: " + strconv.Itoa(end) +
+	// 	"\n" + "selected index: " + strconv.Itoa(m.tabSelected.index) +
+	// 	"\n" + "point x, y: " + strconv.Itoa(m.subSelected.x) + " " + strconv.Itoa(m.subSelected.y) +
+	// 	"\n" + strconv.Itoa(len(m.subMsgs.ylen))
+	// 	"\n" + strconv.Itoa(count)
+	return s + " " + m.debug + " " + strconv.Itoa(m.addInpSelected.index)
 }
 
 func (m Model) View() string {

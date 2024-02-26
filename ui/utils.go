@@ -77,3 +77,25 @@ func removeEndSpace(s string) string {
 	}
 	return s
 }
+
+func (m *Model) blurSearch() {
+	m.searchInput.Blur()
+}
+
+func (m *Model) blurAdsearch() {
+	for i := range m.adSearchInput {
+		m.adSearchInput[i].Blur()
+	}
+}
+
+func (m *Model) blurAddInput() {
+	for i := range m.addInput {
+		m.addInput[i].Blur()
+	}
+}
+
+func sequence(fns ...func()) {
+	for _, fn := range fns {
+		fn()
+	}
+}

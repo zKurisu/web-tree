@@ -12,8 +12,16 @@ import (
 )
 
 func (m *Model) updateSuggestionList() {
-	m.suggestionList = Fuzzy(m.searchInput.Value(), SuggestionInit())
-	m.searchInput.SetSuggestions(m.suggestionList)
+	switch m.mode {
+	case search:
+		m.suggestionList = Fuzzy(m.searchInput.Value(), searchSuggestionInit())
+		m.searchInput.SetSuggestions(m.suggestionList)
+	case advancedSearch:
+		for i := range m.adSearchInput {
+			m.adsuggestionList[i] = Fuzzy(m.adSearchInput[i].Value(), adSearchSuggestionInit()[i])
+			m.adSearchInput[i].SetSuggestions(m.adsuggestionList[i])
+		}
+	}
 }
 
 func (m *Model) updateUIComponents(msg tea.Msg) []tea.Cmd {
@@ -23,12 +31,51 @@ func (m *Model) updateUIComponents(msg tea.Msg) []tea.Cmd {
 	m.searchInput, cmd = m.searchInput.Update(msg)
 	cmds = append(cmds, cmd)
 
+	for i := range m.adSearchInput {
+		m.adSearchInput[i], cmd = m.adSearchInput[i].Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
+	for i := range m.addInput {
+		m.addInput[i], cmd = m.addInput[i].Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
 	m.paginator, cmd = m.paginator.Update(msg)
 	cmds = append(cmds, cmd)
 
 	m.viewport, cmd = m.viewport.Update(msg)
 	cmds = append(cmds, cmd)
 	return cmds
+}
+
+// call it after m.adInpSelected.index has changed
+func (m *Model) updateAdSearch() {
+	for i := range m.adSearchInput {
+		if i == m.adInpSelected.index && m.mode == advancedSearch {
+			m.adSearchInput[i].Focus()
+			m.adSearchInput[i].TextStyle = activeStyle
+			m.adSearchInput[i].PromptStyle = activeStyle
+		} else {
+			m.adSearchInput[i].Blur()
+			m.adSearchInput[i].TextStyle = inactiveStyle
+			m.adSearchInput[i].PromptStyle = inactiveStyle
+		}
+	}
+}
+
+func (m *Model) updateAddInput() {
+	for i := range m.addInput {
+		if i == m.addInpSelected.index && m.mode == add {
+			m.addInput[i].Focus()
+			m.addInput[i].TextStyle = activeStyle
+			m.addInput[i].PromptStyle = activeStyle
+		} else {
+			m.addInput[i].Blur()
+			m.addInput[i].TextStyle = inactiveStyle
+			m.addInput[i].PromptStyle = inactiveStyle
+		}
+	}
 }
 
 func (m *Model) updateContent() {
@@ -39,17 +86,38 @@ func (m *Model) updateContent() {
 	t := root.FindSubTree(selectedContent)
 	m.subMsgs.ylen = []int{0}
 	m.content = m.getTreeView(t, 1)
+	if m.subSelected.y == 0 {
+		m.subSelected.content = t
+	}
 	m.viewport.SetContent(m.content)
 }
 
 func (m *Model) afterModeChange() {
 	switch m.mode {
 	case search:
+		sequence(m.blurAdsearch, m.blurAddInput)
+
+		m.searchInput.Focus()
 		m.searchInput.ShowSuggestions = true
+	case advancedSearch:
+		sequence(m.blurSearch, m.blurAddInput)
+
+		m.adSearchInput[0].Focus()
+		for i := range m.adSearchInput {
+			m.adSearchInput[i].ShowSuggestions = true
+		}
+	case add:
+		sequence(m.blurSearch, m.blurAdsearch)
+
+		m.addInput[0].Focus()
 	case display:
+		sequence(m.blurSearch, m.blurAdsearch, m.blurAddInput)
+
 		m.searchInput.ShowSuggestions = false
-		m.searchInput.SetValue("")
 		m.searchInput.Blur()
+		for i := range m.adSearchInput {
+			m.adSearchInput[i].ShowSuggestions = false
+		}
 	}
 }
 
@@ -89,6 +157,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.sugSelected.index = len(m.searchInput.AvailableSuggestions()) - 1
 					}
 				}
+			case advancedSearch:
+				if msg.String() == m.keymap.UP.Keys()[0] {
+					m.adInpSelected.index--
+					if m.adInpSelected.index < 0 {
+						m.adInpSelected.index = 0
+					} else {
+						m.sugSelected = selected{index: 0}
+					}
+				}
+			case add:
+				if msg.String() == m.keymap.UP.Keys()[0] {
+					m.addInpSelected.index--
+					if m.addInpSelected.index < 0 {
+						m.addInpSelected.index = 0
+					} else {
+						m.sugSelected = selected{index: 0}
+					}
+				}
 			case display:
 				if msg.String() == m.keymap.UP.Keys()[1] {
 					m.subSelected.x = 0
@@ -107,6 +193,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.sugSelected.index = 0
 					}
 				}
+			case advancedSearch:
+				if msg.String() == m.keymap.DOWN.Keys()[0] {
+					m.adInpSelected.index++
+					if m.adInpSelected.index >= len(m.adSearchInput) {
+						// not -1 because a submit botton
+						m.adInpSelected.index = len(m.adSearchInput)
+					} else {
+						m.sugSelected = selected{index: 0}
+					}
+				}
+			case add:
+				if msg.String() == m.keymap.DOWN.Keys()[0] {
+					m.addInpSelected.index++
+					if m.addInpSelected.index >= len(m.addInput) {
+						// not -1 because a submit botton
+						m.addInpSelected.index = len(m.addInput)
+					} else {
+						m.sugSelected = selected{index: 0}
+					}
+				}
 			case display:
 				if msg.String() == m.keymap.DOWN.Keys()[1] {
 					m.subSelected.x = 0
@@ -122,6 +228,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if msg.String() == m.keymap.LEFT.Keys()[0] {
 					posi := m.searchInput.Position()
 					m.searchInput.SetCursor(posi - 1)
+				}
+			case advancedSearch:
+				i := m.adInpSelected.index
+				// Except when selected the botton
+				if i == len(m.adSearchInput) {
+					break
+				}
+				if msg.String() == m.keymap.LEFT.Keys()[0] {
+					posi := m.adSearchInput[i].Position()
+					m.adSearchInput[i].SetCursor(posi - 1)
+				}
+			case add:
+				i := m.addInpSelected.index
+				// Except when selected the botton
+				if i == len(m.addInput) {
+					break
+				}
+				if msg.String() == m.keymap.LEFT.Keys()[0] {
+					posi := m.addInput[i].Position()
+					m.addInput[i].SetCursor(posi - 1)
 				}
 			case display:
 				start, _ := m.paginator.GetSliceBounds(len(m.tabs))
@@ -157,6 +283,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if msg.String() == m.keymap.RIGHT.Keys()[0] {
 					posi := m.searchInput.Position()
 					m.searchInput.SetCursor(posi + 1)
+				}
+			case advancedSearch:
+				i := m.adInpSelected.index
+				// Except when selected the botton
+				if i == len(m.adSearchInput) {
+					break
+				}
+				if msg.String() == m.keymap.RIGHT.Keys()[0] {
+					posi := m.adSearchInput[i].Position()
+					m.adSearchInput[i].SetCursor(posi + 1)
+				}
+			case add:
+				i := m.addInpSelected.index
+				// Except when selected the botton
+				if i == len(m.addInput) {
+					break
+				}
+				if msg.String() == m.keymap.RIGHT.Keys()[0] {
+					posi := m.addInput[i].Position()
+					m.addInput[i].SetCursor(posi + 1)
 				}
 			case display:
 				_, end := m.paginator.GetSliceBounds(len(m.tabs))
@@ -195,7 +341,34 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.searchInput.SetValue(v[:len(v)-1])
 					}
 				}
+			case advancedSearch:
+				i := m.adInpSelected.index
+				// Except when selected the botton
+				if i == len(m.adSearchInput) {
+					break
+				}
+
+				if msg.String() == m.keymap.DELETE.Keys()[0] {
+					v := m.adSearchInput[i].Value()
+					if len(v) != 0 {
+						m.adSearchInput[i].SetValue(v[:len(v)-1])
+					}
+				}
+			case add:
+				i := m.addInpSelected.index
+				// Except when selected the botton
+				if i == len(m.addInput) {
+					break
+				}
+
+				if msg.String() == m.keymap.DELETE.Keys()[0] {
+					v := m.addInput[i].Value()
+					if len(v) != 0 {
+						m.addInput[i].SetValue(v[:len(v)-1])
+					}
+				}
 			}
+
 		case key.Matches(msg, m.keymap.COMPLETE):
 			switch m.mode {
 			case search:
@@ -221,6 +394,36 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 				m.searchInput.CursorEnd()
+			case advancedSearch:
+				i := m.adInpSelected.index
+				// Except when selected the botton
+				if i == len(m.adSearchInput) {
+					break
+				}
+				if msg.String() == m.keymap.COMPLETE.Keys()[0] {
+					if len(m.adsuggestionList[i]) != 0 {
+						if m.sugSelected.index == 0 && m.adSearchInput[i].Value() != m.adSearchInput[i].AvailableSuggestions()[0] {
+							m.adSearchInput[i].SetValue(m.adSearchInput[i].AvailableSuggestions()[0])
+						} else {
+							m.sugSelected.index++
+							if m.sugSelected.index > len(m.adSearchInput[i].AvailableSuggestions())-1 {
+								m.sugSelected.index = 0
+							}
+							m.adSearchInput[i].SetValue(m.adSearchInput[i].AvailableSuggestions()[m.sugSelected.index])
+						}
+					}
+				} else if msg.String() == m.keymap.COMPLETE.Keys()[1] {
+					if len(m.adsuggestionList[i]) != 0 {
+						m.sugSelected.index--
+						if m.sugSelected.index < 0 {
+							m.sugSelected.index = len(m.adSearchInput[i].AvailableSuggestions()) - 1
+						}
+						m.adSearchInput[i].SetValue(m.adSearchInput[i].AvailableSuggestions()[m.sugSelected.index])
+					}
+				}
+				m.adSearchInput[i].CursorEnd()
+			case add:
+				// current do nothing for this
 			}
 		case key.Matches(msg, m.keymap.SELECT):
 			switch m.mode {
@@ -241,7 +444,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					switch content := m.sugSelected.content.(type) {
 					case nodeMsg:
 						hint := append(content.link, content.alias...)
-						m.subSelected.content = utils.RootTree.DeepFindSubTree(content.path).FindNode(hint)
+						m.subMsgs.searchedContent = utils.RootTree.DeepFindSubTree(content.path).FindNode(hint)
 						tabTarget = strings.Split(content.path, "/")[0]
 					case treeMsg:
 						tabTarget = strings.Split(content.path, "/")[0]
@@ -252,39 +455,101 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.tabSelected.index = i
 						}
 					}
-					m.mode = display
+					// m.mode = display
 				}
-				// Then set tabSelected index and subSelected x, y
+			case advancedSearch:
+				i := m.adInpSelected.index
+				// When selected the botton
+				// set tabSelected.index and subSelected.content
+				if i == len(m.adSearchInput) {
+					var treeName string
+					var hints []string
+					for i := range m.adSearchInput {
+						v := m.adSearchInput[i].Value()
+
+						if v != "" {
+							switch i {
+							case 0:
+								var selectedTab string
+								treeName = v
+								selectedTab = utils.SplitTreeLevel(v)[0]
+								for i, tab := range m.tabs {
+									if tab == selectedTab {
+										m.tabSelected.index = i
+									}
+								}
+							case 1, 2:
+								hints = append(hints, strings.Split(v, " ")...)
+							}
+						}
+					}
+					hints = utils.RemoveEmp(hints)
+					t := utils.RootTree.DeepFindSubTree(treeName)
+					if t != nil {
+						m.subMsgs.searchedContent = t.FindNode(hints)
+					}
+					m.mode = display
+					m.afterModeChange()
+					break
+				}
+				if len(m.adsuggestionList[i]) != 0 {
+					m.adSearchInput[i].SetValue(m.adSearchInput[i].AvailableSuggestions()[m.sugSelected.index])
+					m.adSearchInput[i].CursorEnd()
+					m.adInpSelected.index++
+				}
+			case add:
+				i := m.addInpSelected.index
+				// When select the botton
+				if i == len(m.addInput) {
+					root := utils.RootTree
+					treeName := m.addInput[0].Value()
+					links := strings.Split(m.addInput[1].Value(), " ")
+					alias := strings.Split(m.addInput[2].Value(), " ")
+					desc := strings.Split(m.addInput[3].Value(), ",")
+					label := strings.Split(m.addInput[4].Value(), " ")
+					icon := m.addInput[5].Value()
+
+					root.DeepAddNewSubTree(treeName)
+					t := root.DeepFindSubTree(treeName)
+					n, _ := utils.NewNode(links, alias, desc, icon, label, "None")
+					t.AppendNode(n)
+				}
 			}
 		case key.Matches(msg, m.keymap.CLEAR):
 			switch m.mode {
 			case search:
 				m.searchInput.SetValue("")
 				m.searchInput.CursorStart()
+			case advancedSearch:
+				i := m.adInpSelected.index
+				m.adSearchInput[i].SetValue("")
+				m.adSearchInput[i].CursorStart()
 			}
 		case key.Matches(msg, m.keymap.OPEN):
-		case key.Matches(msg, m.keymap.ADD):
 		case key.Matches(msg, m.keymap.JUMP):
 		case key.Matches(msg, m.keymap.TOGGLE):
 			m.toggle = !m.toggle
 		case key.Matches(msg, m.keymap.DETAIL):
 		case key.Matches(msg, m.keymap.SINGLE):
 		case key.Matches(msg, m.keymap.SWITCH):
-			switch m.mode {
-			case search, advancedSearch:
-				if msg.String() == m.keymap.SWITCH.Keys()[0] {
-					m.mode = display
-					m.searchInput.Blur()
-				}
-			case display:
-				if msg.String() == m.keymap.SWITCH.Keys()[1] {
-					m.mode = search
-					m.searchInput.Focus()
-				}
-				if msg.String() == m.keymap.SWITCH.Keys()[2] {
-					m.mode = advancedSearch
+			m.lastMode = m.mode
+			m.debug = msg.String()
+			switch msg.String() {
+			case m.keymap.SWITCH.Keys()[0]:
+				m.mode = display
+			case m.keymap.SWITCH.Keys()[1]:
+				m.mode = search
+			case m.keymap.SWITCH.Keys()[2]:
+				m.mode = advancedSearch
+			case m.keymap.SWITCH.Keys()[3]:
+				m.mode = add
+			case m.keymap.SWITCH.Keys()[4]:
+				if m.lastMode == display {
+					m.mode = edit
 				}
 			}
+
+			m.afterModeChange()
 		case key.Matches(msg, m.keymap.HELP):
 			m.helpToggle = !m.helpToggle
 			m.help.ShowAll = !m.help.ShowAll
@@ -293,8 +558,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	m.updateAdSearch()
+	m.updateAddInput()
 	m.updateContent()
-	m.afterModeChange()
 	m.updateSuggestionList()
 	cmds = m.updateUIComponents(msg)
 

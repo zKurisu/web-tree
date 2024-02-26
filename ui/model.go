@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
+	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	// tea "github.com/charmbracelet/bubbletea"
@@ -12,26 +13,40 @@ import (
 )
 
 type Model struct {
-	help           help.Model
-	searchInput    textinput.Model
-	adSearchInput  []textinput.Model
-	paginator      paginator.Model
-	viewport       viewport.Model
-	root           utils.Tree
-	suggestionList []string
-	tabs           []string
+	help             help.Model
+	searchInput      textinput.Model
+	adSearchInput    []textinput.Model
+	addInput         []textinput.Model
+	paginator        paginator.Model
+	viewport         viewport.Model
+	textarea         textarea.Model
+	root             utils.Tree
+	suggestionList   []string
+	adsuggestionList [][]string
+	tabs             []string
+
 	tabSelected    selected
 	sugSelected    selected
+	adInpSelected  selected
+	addInpSelected selected
 	subSelected    point
-	subMsgs        subMsg
-	content        string
-	keymap         keyMap
-	ready          bool
-	toggle         bool
-	detail         bool
-	helpToggle     bool
-	mode           Mode
-	debug          string
+
+	subMsgs subMsg
+	content string
+	keymap  keyMap
+
+	ready      bool
+	toggle     bool
+	detail     bool
+	helpToggle bool
+	delete     bool
+	copy       bool
+	paste      bool
+
+	mode     Mode
+	lastMode Mode
+
+	debug string
 }
 
 type keyMap struct {
@@ -43,6 +58,7 @@ type keyMap struct {
 	OPEN     key.Binding
 	ADD      key.Binding
 	DELETE   key.Binding
+	EDIT     key.Binding
 	JUMP     key.Binding
 	TOGGLE   key.Binding
 	DETAIL   key.Binding
@@ -75,7 +91,8 @@ type nodeMsg struct {
 }
 
 type subMsg struct {
-	ylen []int
+	ylen            []int
+	searchedContent interface{}
 }
 
 type Mode int
@@ -84,6 +101,8 @@ const (
 	search Mode = iota
 	advancedSearch
 	display
+	add
+	edit
 )
 
 var (
@@ -122,6 +141,7 @@ var (
 	suggestionQuoteStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#4421f2"))
 	suggestionMatchedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#eeee92"))
 	suggestionSelectedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#e78"))
+	adSearchSubmitStyle     = lipgloss.NewStyle().Background(lipgloss.Color("#e78"))
 
 	viewBoxStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
 
@@ -176,10 +196,6 @@ var (
 			key.WithKeys("ctrl+o"),
 			key.WithHelp("ctrl+o", "Open the link"),
 		),
-		ADD: key.NewBinding(
-			key.WithKeys("ctrl+a"),
-			key.WithHelp("ctrl+a", "Add a new tree/node"),
-		),
 		DELETE: key.NewBinding(
 			key.WithKeys("backspace", "ctrl+d"),
 			key.WithHelp("backspace", "Delete a character"),
@@ -211,10 +227,12 @@ var (
 			key.WithHelp("shift+tab", "Autocomplete the input, index move backward"),
 		),
 		SWITCH: key.NewBinding(
-			key.WithKeys("esc", "i", "u"),
+			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "e"),
 			key.WithHelp("esc", "Display mode"),
-			key.WithHelp("i", "Normal search mode"),
-			key.WithHelp("u", "AdvancedSearch mode"),
+			key.WithHelp("ctrl+n", "Normal search mode"),
+			key.WithHelp("ctrl+u", "AdvancedSearch mode"),
+			key.WithHelp("ctrl+a", "Add mode"),
+			key.WithHelp("e", "Edit mode"),
 		),
 		QUIT: key.NewBinding(
 			key.WithKeys("ctrl+c"),
