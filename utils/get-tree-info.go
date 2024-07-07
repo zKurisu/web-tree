@@ -1,5 +1,9 @@
 package utils
 
+import (
+	"strings"
+)
+
 func (tree Tree) GetTreeName() string {
 	return tree.Name
 }
@@ -11,6 +15,16 @@ func (tree Tree) GetTreeBaseName() string {
 		name = levels[len(levels)-1]
 	}
 	return name
+}
+
+func (tree Tree) GetFatherName() string {
+	levels := strings.Split(tree.GetTreeName(), "/")
+	fatherName := strings.Join(levels[0:len(levels)-1], "/")
+	if fatherName == "" {
+		return "root"
+	} else {
+		return fatherName
+	}
 }
 
 func (tree Tree) GetAllSubtree() []*Tree {

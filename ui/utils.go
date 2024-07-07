@@ -94,6 +94,10 @@ func (m *Model) blurAddInput() {
 	}
 }
 
+func (m *Model) blurTextarea() {
+	m.textarea.Blur()
+}
+
 func sequence(fns ...func()) {
 	for _, fn := range fns {
 		fn()

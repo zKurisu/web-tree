@@ -25,11 +25,12 @@ type Model struct {
 	adsuggestionList [][]string
 	tabs             []string
 
-	tabSelected    selected
-	sugSelected    selected
-	adInpSelected  selected
-	addInpSelected selected
-	subSelected    point
+	tabSelected     selected
+	sugSelected     selected
+	adInpSelected   selected
+	addInpSelected  selected
+	subSelected     point
+	preSelectedTree []point
 
 	subMsgs subMsg
 	content string
@@ -42,6 +43,7 @@ type Model struct {
 	delete     bool
 	copy       bool
 	paste      bool
+	curTree    *utils.Tree
 
 	mode     Mode
 	lastMode Mode
@@ -66,6 +68,7 @@ type keyMap struct {
 	COMPLETE key.Binding
 	SELECT   key.Binding
 	SWITCH   key.Binding
+	SAVE     key.Binding
 	QUIT     key.Binding
 	HELP     key.Binding
 }
@@ -210,8 +213,8 @@ var (
 			key.WithHelp("ctrl+t", "Toggle from link and alias"),
 		),
 		DETAIL: key.NewBinding(
-			key.WithKeys("ctrl+s"),
-			key.WithHelp("ctrl+s", "Show all message of a node"),
+			key.WithKeys("ctrl+["),
+			key.WithHelp("ctrl+[", "Show all message of a node"),
 		),
 		SINGLE: key.NewBinding(
 			key.WithKeys("ctrl+x"),
@@ -220,6 +223,10 @@ var (
 		SELECT: key.NewBinding(
 			key.WithKeys("enter"),
 			key.WithHelp("enter", "Select the one under cursor"),
+		),
+		SAVE: key.NewBinding(
+			key.WithKeys("ctrl+s"),
+			key.WithHelp("ctrl+s", "Save change to tree or node in TextArea"),
 		),
 		COMPLETE: key.NewBinding(
 			key.WithKeys("tab", "shift+tab"),

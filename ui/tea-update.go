@@ -46,6 +46,9 @@ func (m *Model) updateUIComponents(msg tea.Msg) []tea.Cmd {
 
 	m.viewport, cmd = m.viewport.Update(msg)
 	cmds = append(cmds, cmd)
+
+	m.textarea, cmd = m.textarea.Update(msg)
+	cmds = append(cmds, cmd)
 	return cmds
 }
 
@@ -92,32 +95,53 @@ func (m *Model) updateContent() {
 	m.viewport.SetContent(m.content)
 }
 
+func (m *Model) updateTextarea() {
+	// Set info of current selected node
+}
+
 func (m *Model) afterModeChange() {
 	switch m.mode {
 	case search:
-		sequence(m.blurAdsearch, m.blurAddInput)
+		sequence(m.blurAdsearch, m.blurAddInput, m.blurTextarea)
 
 		m.searchInput.Focus()
 		m.searchInput.ShowSuggestions = true
 	case advancedSearch:
-		sequence(m.blurSearch, m.blurAddInput)
+		sequence(m.blurSearch, m.blurAddInput, m.blurTextarea)
 
 		m.adSearchInput[0].Focus()
 		for i := range m.adSearchInput {
 			m.adSearchInput[i].ShowSuggestions = true
 		}
 	case add:
-		sequence(m.blurSearch, m.blurAdsearch)
+		sequence(m.blurSearch, m.blurAdsearch, m.blurTextarea)
 
 		m.addInput[0].Focus()
 	case display:
-		sequence(m.blurSearch, m.blurAdsearch, m.blurAddInput)
+		sequence(m.blurSearch, m.blurAdsearch, m.blurAddInput, m.blurTextarea)
 
 		m.searchInput.ShowSuggestions = false
 		m.searchInput.Blur()
 		for i := range m.adSearchInput {
 			m.adSearchInput[i].ShowSuggestions = false
 		}
+	case edit:
+		var b strings.Builder
+		switch content := m.subSelected.content.(type) {
+		case *utils.Tree:
+			b.WriteString(content.GetTreeName())
+		case *utils.Node:
+			b.WriteString("links: " + strings.Join(content.Link, " "))
+			b.WriteString("\n")
+			b.WriteString("alias: " + strings.Join(content.Alias, " "))
+			b.WriteString("\n")
+			b.WriteString("description: " + strings.Join(content.Desc, " "))
+			b.WriteString("\n")
+			b.WriteString("label: " + strings.Join(content.Label, " "))
+		}
+
+		m.textarea.Focus()
+		m.textarea.SetValue(b.String())
 	}
 }
 
@@ -177,11 +201,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case display:
 				if msg.String() == m.keymap.UP.Keys()[1] {
-					m.subSelected.x = 0
-					m.subSelected.y--
-					if m.subSelected.y < 0 {
-						m.subSelected.y = 0
-					}
+					m.subSelected = m.preSelectedTree[len(m.preSelectedTree)-1]
+					m.preSelectedTree = m.preSelectedTree[:len(m.preSelectedTree)-1]
 				}
 			}
 		case key.Matches(msg, m.keymap.DOWN):
@@ -215,6 +236,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case display:
 				if msg.String() == m.keymap.DOWN.Keys()[1] {
+					m.preSelectedTree = append(m.preSelectedTree, m.subSelected)
 					m.subSelected.x = 0
 					m.subSelected.y++
 					if m.subSelected.y > len(m.subMsgs.ylen)-1 {
@@ -337,12 +359,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case search:
 				if msg.String() == m.keymap.DELETE.Keys()[0] {
 					v := m.searchInput.Value()
+					p := m.searchInput.Position()
 					if len(v) != 0 {
-						m.searchInput.SetValue(v[:len(v)-1])
+						if p > 0 {
+							m.searchInput.SetValue(v[:p-1] + v[p:])
+							m.searchInput.SetCursor(p - 1)
+						}
 					}
 				}
 			case advancedSearch:
 				i := m.adInpSelected.index
+				p := m.adSearchInput[i].Position()
 				// Except when selected the botton
 				if i == len(m.adSearchInput) {
 					break
@@ -352,10 +379,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					v := m.adSearchInput[i].Value()
 					if len(v) != 0 {
 						m.adSearchInput[i].SetValue(v[:len(v)-1])
+						if p > 0 {
+							m.adSearchInput[i].SetValue(v[:p-1] + v[p:])
+							m.adSearchInput[i].SetCursor(p - 1)
+						}
 					}
 				}
 			case add:
 				i := m.addInpSelected.index
+				p := m.addInput[i].Position()
 				// Except when selected the botton
 				if i == len(m.addInput) {
 					break
@@ -365,7 +397,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					v := m.addInput[i].Value()
 					if len(v) != 0 {
 						m.addInput[i].SetValue(v[:len(v)-1])
+						if p > 0 {
+							m.addInput[i].SetValue(v[:p-1] + v[p:])
+							m.addInput[i].SetCursor(p - 1)
+						}
 					}
+				}
+			case display:
+				if msg.String() == m.keymap.DELETE.Keys()[1] {
+					root := utils.RootTree
+					tname := m.tabSelected.content.(string)
+					t := root.DeepFindSubTree(tname)
+
+					switch content := m.subSelected.content.(type) {
+					case *utils.Tree:
+						root.DeepDelSubTree(content.Name)
+						// log.Println(content.Name)
+					case *utils.Node:
+						hints := []string{}
+						hints = append(hints, content.Link...)
+						hints = append(hints, content.Alias...)
+						t.DelNode(hints)
+						// log.Println(content)
+					}
+					utils.WriteAll()
 				}
 			}
 
@@ -513,6 +568,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					t := root.DeepFindSubTree(treeName)
 					n, _ := utils.NewNode(links, alias, desc, icon, label, "None")
 					t.AppendNode(n)
+					utils.WriteAll()
 				}
 			}
 		case key.Matches(msg, m.keymap.CLEAR):
@@ -549,7 +605,50 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-			m.afterModeChange()
+			if m.lastMode != m.mode {
+				m.afterModeChange()
+			}
+		case key.Matches(msg, m.keymap.SAVE):
+			switch m.mode {
+			case edit:
+				m.lastMode = m.mode
+				m.mode = display
+				m.textarea.Blur()
+
+				content := m.textarea.Value()
+				switch target := m.subSelected.content.(type) {
+				case *utils.Tree:
+					levels := strings.Split(content, "/")
+					nextFatherName := strings.Join(levels[0:len(levels)-1], "/")
+					if nextFatherName == "" {
+						nextFatherName = "root"
+					}
+					oriFatherName := target.GetFatherName()
+					// m.debug = "next: " + nextFatherName + " ori: " + oriFatherName
+
+					if nextFatherName != oriFatherName {
+						nextFatherTree := utils.RootTree.DeepFindSubTree(nextFatherName)
+						oriFatherTree := utils.RootTree.DeepFindSubTree(target.GetFatherName())
+
+						if nextFatherTree == nil {
+							utils.RootTree.DeepAddNewSubTree(nextFatherName)
+							nextFatherTree = utils.RootTree.DeepFindSubTree(nextFatherName)
+						}
+						nextFatherTree.AppendSubTree(target)
+						oriFatherTree.DelSubTree(target.GetTreeName())
+					}
+					target.Name = content
+				case *utils.Node:
+					lines := strings.Split(content, "\n")
+					target.Link = strings.Split(lines[0], " ")[1:]
+					target.Alias = strings.Split(lines[1], " ")[1:]
+					target.Desc = strings.Split(lines[2], " ")[1:]
+					target.Label = strings.Split(lines[3], " ")[1:]
+				}
+
+				utils.WriteAll()
+			}
+
 		case key.Matches(msg, m.keymap.HELP):
 			m.helpToggle = !m.helpToggle
 			m.help.ShowAll = !m.help.ShowAll
@@ -562,6 +661,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.updateAddInput()
 	m.updateContent()
 	m.updateSuggestionList()
+	m.updateTextarea()
 	cmds = m.updateUIComponents(msg)
 
 	return m, tea.Batch(cmds...)

@@ -111,26 +111,39 @@ func (m *Model) treeTabView() string {
 func (m *Model) getTreeView(t *utils.Tree, y int) string {
 	var b strings.Builder
 	var x int = 0
+	var nextTreeLock = 0
+	var nodeSelected = 0
+	var nextree *utils.Tree
 	rendered := []string{}
 
 	if len(t.GetAllSubtree()) > 0 {
 		for _, sub := range t.GetAllSubtree() {
-			if y == m.subSelected.y && x == m.subSelected.x {
+			if len(m.preSelectedTree) > y {
+				if x == m.preSelectedTree[y].x && y == m.preSelectedTree[y].y {
+					nextTreeLock = 1
+					nextree = sub
+				}
+			}
+			if x == m.subSelected.x && y == m.subSelected.y {
 				m.subSelected.content = sub
+				nextTreeLock = 1
+				nextree = sub
 				treeName := sub.GetTreeName()
 
 				switch m.mode {
 				case edit:
 					height := lipgloss.Height(treeName)
-					width := lipgloss.Width(treeName)
+					width := lipgloss.Width(treeName + "          ")
 					m.textarea.SetWidth(width)
 					m.textarea.SetHeight(height)
-					m.textarea.SetValue(treeName)
 					rendered = append(rendered, treeBoxSelectedStyle.Render(m.textarea.View()))
 				default:
 					rendered = append(rendered, treeBoxSelectedStyle.Render(treeName))
 				}
 			} else {
+				if nextTreeLock == 0 {
+					nextree = t.GetAllSubtree()[0]
+				}
 				rendered = append(rendered, m.getRenderedTreeName(sub))
 			}
 			x++
@@ -149,10 +162,22 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 			}
 
 			if y == m.subSelected.y && x == m.subSelected.x {
+				nodeSelected = 1
 				m.subSelected.content = node
 				m.detail = true
-				rendered = append(rendered, nodeBoxSelected.Render(m.getNodeView(node)))
+
+				switch m.mode {
+				case edit:
+					height := lipgloss.Height(m.getNodeView(node))
+					width := lipgloss.Width(strings.Join(node.Link, " ") + "          ")
+					m.textarea.SetWidth(width)
+					m.textarea.SetHeight(height)
+					rendered = append(rendered, nodeBoxSelected.Render(m.textarea.View()))
+				default:
+					rendered = append(rendered, nodeBoxSelected.Render(m.getNodeView(node)))
+				}
 				m.detail = false
+
 			} else {
 				rendered = append(rendered, nodeBoxStyle.Render(m.getNodeView(node)))
 			}
@@ -164,11 +189,12 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, rendered...))
 	b.WriteString("\n")
 
-	if len(t.GetAllSubtree()) > 0 {
+	if len(t.GetAllSubtree()) > 0 && nodeSelected == 0 {
 		y++
-		b.WriteString(m.getTreeView(t.GetAllSubtree()[0], y))
+		b.WriteString(m.getTreeView(nextree, y))
 	}
 
+	// m.debug = "x: " + strconv.Itoa(x) + " y: " + strconv.Itoa(y)
 	return b.String()
 }
 
@@ -251,12 +277,23 @@ func (m Model) debugView() string {
 		s = "edit"
 	}
 
-	// switch m.subSelected.content.(type) {
-	// case *utils.Tree:
-	// 	m.debug = "Tree"
-	// case *utils.Node:
-	// 	m.debug = "Node"
-	// }
+	strYlens := []string{}
+	for _, ylen := range m.subMsgs.ylen {
+		strYlens = append(strYlens, strconv.Itoa(ylen))
+	}
+	strYlen := strings.Join(strYlens, " ")
+
+	preStr := ""
+	for _, point := range m.preSelectedTree {
+		preStr += "{" + strconv.Itoa(point.x) + "," + strconv.Itoa(point.y) + "}"
+	}
+
+	//switch content := m.subSelected.content.(type) {
+	//case *utils.Tree:
+	//	m.debug = content.GetFatherName()
+	//case *utils.Node:
+	//	m.debug = "Node"
+	//}
 
 	// return s + " " + m.debug + "\n" + "start: " + strconv.Itoa(start) +
 	// 	"\n" + "end: " + strconv.Itoa(end) +
@@ -264,7 +301,12 @@ func (m Model) debugView() string {
 	// 	"\n" + "point x, y: " + strconv.Itoa(m.subSelected.x) + " " + strconv.Itoa(m.subSelected.y) +
 	// 	"\n" + strconv.Itoa(len(m.subMsgs.ylen))
 	// 	"\n" + strconv.Itoa(count)
-	return s + " " + m.debug + " " + strconv.Itoa(m.addInpSelected.index)
+	return s + " " + m.debug + " " + strconv.Itoa(m.addInpSelected.index) + "\n" +
+		// "PreSelectedTree.x:" + strconv.Itoa(m.preSelectedTree.x) + " PreSelectedTree.y:" + strconv.Itoa(m.preSelectedTree.y) + "\n" +
+		"PreSelectedTree: " + preStr + "\n" +
+		"subSelected.x:" + strconv.Itoa(m.subSelected.x) + " subSelected.y:" + strconv.Itoa(m.subSelected.y) + "\n" +
+		"ylen: " + strconv.Itoa(len(m.subMsgs.ylen)) + "\n" +
+		"all ylen: " + strYlen
 }
 
 func (m Model) View() string {

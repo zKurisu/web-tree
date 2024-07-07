@@ -37,6 +37,11 @@ func (tree *Tree) WriteTree() error {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	err = fd.Sync()
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer fd.Close()
 
 	return nil
@@ -50,6 +55,7 @@ func WriteAll() error {
 			if err := tree.WriteTree(); err != nil {
 				return errors.New("Wrong when Write " + tree.GetTreeName())
 			}
+			// log.Println("Tree " + tree.Name + " is writed")
 		}
 		//       else {
 		// 	log.Println("Tree " + tree.Name + " does not update")
@@ -157,10 +163,14 @@ func (tree *Tree) DeepDelSubTree(name string) error {
 	levels := SplitTreeLevel(name)
 	if len(levels) > 1 {
 		targetTreeName := strings.Join(levels[:len(levels)-1], "/")
-		targetSubTreeName := levels[len(levels)-1]
+		targetSubTreeName := name
+		// log.Println(targetTreeName)
+		// log.Println(targetSubTreeName)
 		targetTree := tree.DeepFindSubTree(targetTreeName)
+		// log.Println(targetTree)
 		if targetTree != nil {
 			targetTree.DelSubTree(targetSubTreeName)
+			// log.Println(targetTree)
 		} else {
 			return errors.New("Tree " + targetTreeName + " does not exist")
 		}

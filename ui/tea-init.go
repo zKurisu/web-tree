@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -135,7 +136,44 @@ func paginatorInit() paginator.Model {
 
 func textareaInit() textarea.Model {
 	ta := textarea.New()
-	ta.KeyMap = textarea.KeyMap{}
+	ta.KeyMap = textarea.KeyMap{
+		CharacterForward: key.NewBinding(
+			key.WithKeys("ctrl+l"),
+			key.WithHelp("ctrl+l", "CharacterForward"),
+		),
+		CharacterBackward: key.NewBinding(
+			key.WithKeys("ctrl+h"),
+			key.WithHelp("ctrl+h", "CharacterBackward"),
+		),
+		DeleteCharacterBackward: key.NewBinding(
+			key.WithKeys("backspace"),
+			key.WithHelp("backspace", "DeleteWordBackward"),
+		),
+		InsertNewline: key.NewBinding(
+			key.WithKeys("enter"),
+			key.WithHelp("enter", "InsertNewline"),
+		),
+		LineEnd: key.NewBinding(
+			key.WithKeys("ctrl+e"),
+			key.WithHelp("ctrl+e", "LineEnd"),
+		),
+		LineStart: key.NewBinding(
+			key.WithKeys("ctrl+q"),
+			key.WithHelp("ctrl+q", "LineStart"),
+		),
+		LineNext: key.NewBinding(
+			key.WithKeys("ctrl+j"),
+			key.WithHelp("ctrl+j", "LineNext"),
+		),
+		LinePrevious: key.NewBinding(
+			key.WithKeys("ctrl+k"),
+			key.WithHelp("ctrl+k", "LinePrevious"),
+		),
+		Paste: key.NewBinding(
+			key.WithKeys("ctrl+p"),
+			key.WithHelp("ctrl+p", "Paste"),
+		),
+	}
 	return ta
 }
 
@@ -154,11 +192,12 @@ func InitialModel() Model {
 		adsuggestionList: adSearchSuggestionInit(),
 		textarea:         textareaInit(),
 
-		tabSelected:    selected{index: 0},
-		sugSelected:    selected{index: 0},
-		adInpSelected:  selected{index: 0},
-		addInpSelected: selected{index: 0},
-		subSelected:    point{x: 0, y: 0},
+		tabSelected:     selected{index: 0},
+		sugSelected:     selected{index: 0},
+		adInpSelected:   selected{index: 0},
+		addInpSelected:  selected{index: 0},
+		subSelected:     point{x: 0, y: 0},
+		preSelectedTree: []point{},
 
 		subMsgs:    subMsg{ylen: []int{0}},
 		tabs:       root.GetAllSubtreeName(),
