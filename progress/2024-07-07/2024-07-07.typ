@@ -37,5 +37,18 @@
 - pop Window 实现起来有难度, 可以考虑底部显示是否 delete
 - 使用 pop Window 需要考虑要替换的 byte 的位置, 如何计算得出? 先得出 `displayBytes` 的长度, 因为此时不会有 suggestion, 因此不用考虑. 需要一个函数, 根据 viewport 的宽和高来计算要替换的 bytes 的开始位置
 
+= Command Prompt 相关
+- 主体思路与 vim 的 Ex 命令类似
+- 需要考虑 display 的 width 和 height
+- 用 `:` 开头
+- 用 `enter` 执行
+- 如果是删除操作, 则是 `:delete tree(TREENAME...)` 或 `:delete node(NODEALIAS...)`, 可接收多个参数等
+- 同样需要添加 `edit`, `add`, `move` 等函数, 可借鉴命令行子命令
+- `Command` 类型用于处理命令, 成员可能有:
+  - textinput, `textinput.Model`
+  - prompt char, `string`
+  - command, `string`
+  - args, `[]string`
+
 = Bug 相关
 - 终端大小变化后, UI 出现问题, 需要添加动态变化

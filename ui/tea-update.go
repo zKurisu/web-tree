@@ -193,9 +193,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			helpHeight + treeTabHeight + footerHeight
 
 		if !m.ready {
-			m.delPopWin.viewport.Width = msg.Width / 3
-			m.delPopWin.viewport.Height = msg.Height / 4
-
 			m.viewport = viewport.New(msg.Width, msg.Height/2)
 			m.viewport.HighPerformanceRendering = false
 			m.viewport.KeyMap = viewport.KeyMap{}
@@ -336,9 +333,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				}
 			case del:
-				if msg.String() == m.keymap.LEFT.Keys()[1] {
-					m.delPopWin.selectedIndex = 0
-				}
 			}
 		case key.Matches(msg, m.keymap.RIGHT):
 			switch m.mode {
@@ -395,9 +389,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				}
 			case del:
-				if msg.String() == m.keymap.RIGHT.Keys()[1] {
-					m.delPopWin.selectedIndex = 1
-				}
 			}
 		case key.Matches(msg, m.keymap.DELETE):
 			switch m.mode {

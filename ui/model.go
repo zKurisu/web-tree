@@ -19,7 +19,6 @@ type Model struct {
 	addInput         []textinput.Model
 	paginator        paginator.Model
 	viewport         viewport.Model
-	delPopWin        popWin
 	textarea         textarea.Model
 	root             utils.Tree
 	suggestionList   []string
@@ -49,6 +48,8 @@ type Model struct {
 	mode     Mode
 	lastMode Mode
 
+	command Command
+
 	debug string
 }
 
@@ -74,6 +75,13 @@ type keyMap struct {
 	HELP     key.Binding
 }
 
+type Command struct {
+	input  textinput.Model
+	prompt string
+	cmd    string
+	args   []string
+}
+
 type selected struct {
 	index   int
 	content interface{}
@@ -97,13 +105,6 @@ type nodeMsg struct {
 type subMsg struct {
 	ylen            []int
 	searchedContent interface{}
-}
-
-type popWin struct {
-	viewport      viewport.Model
-	hint          string
-	bottons       []string
-	selectedIndex int
 }
 
 type Mode int

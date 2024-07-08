@@ -107,33 +107,6 @@ func (m *Model) treeTabView() string {
 	return b.String()
 }
 
-// Calculate the width, height and position here?
-func (m *Model) delPopWinView() string {
-	if m.mode == del {
-		var b strings.Builder
-		// Hint info
-		b.WriteString("Confirm deletion of " + m.delPopWin.hint + "\n")
-
-		// Botton Rendering
-		rendered := []string{}
-		for index, botton := range m.delPopWin.bottons {
-			if index == m.delPopWin.selectedIndex {
-				rendered = append(rendered, BottonBoxSelectedStyle.Render(botton))
-			} else {
-				rendered = append(rendered, BottonBoxStyle.Render(botton))
-			}
-		}
-		b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, rendered...))
-		b.WriteString("\n")
-
-		m.delPopWin.viewport.SetContent(b.String())
-
-		return m.delPopWin.viewport.View()
-	} else {
-		return ""
-	}
-}
-
 // not conclude tree name itself, first subtree, then node
 func (m *Model) getTreeView(t *utils.Tree, y int) string {
 	var b strings.Builder
@@ -152,8 +125,7 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 				}
 			}
 			if x == m.subSelected.x && y == m.subSelected.y {
-				m.curTree = t                                          // Get fathertree address, using for deletion
-				m.delPopWin.hint = "tree [" + sub.GetTreeName() + "]?" // Set hint info, using for deletion
+				m.curTree = t // Get fathertree address, using for deletion
 				m.subSelected.content = sub
 				nextTreeLock = 1
 				nextree = sub
@@ -192,8 +164,7 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 
 			if y == m.subSelected.y && x == m.subSelected.x {
 				nodeSelected = 1
-				m.curTree = t                                               // Get fathertree address, using for deletion
-				m.delPopWin.hint = "node [" + node.GetNodeAlias()[0] + "]?" // Set hint info, using for deletion
+				m.curTree = t // Get fathertree address, using for deletion
 				m.subSelected.content = node
 				m.detail = true
 
