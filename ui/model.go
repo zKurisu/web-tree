@@ -19,6 +19,7 @@ type Model struct {
 	addInput         []textinput.Model
 	paginator        paginator.Model
 	viewport         viewport.Model
+	delPopWin        popWin
 	textarea         textarea.Model
 	root             utils.Tree
 	suggestionList   []string
@@ -98,6 +99,13 @@ type subMsg struct {
 	searchedContent interface{}
 }
 
+type popWin struct {
+	viewport      viewport.Model
+	hint          string
+	bottons       []string
+	selectedIndex int
+}
+
 type Mode int
 
 const (
@@ -106,6 +114,7 @@ const (
 	display
 	add
 	edit
+	del
 )
 
 var (
@@ -156,6 +165,9 @@ var (
 	treeBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
 	treeBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder()).Background(lipgloss.Color("#476"))
 
+	BottonBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
+	BottonBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder()).Background(lipgloss.Color("#476"))
+
 	nodeBoxStyle    = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
 	nodeBoxSelected = activeStyle.Copy().Border(lipgloss.RoundedBorder()).Background(lipgloss.Color("#476"))
 	linkStyle       = noStyle.Copy().Foreground(lipgloss.Color("#9338f9"))
@@ -200,9 +212,8 @@ var (
 			key.WithHelp("ctrl+o", "Open the link"),
 		),
 		DELETE: key.NewBinding(
-			key.WithKeys("backspace", "ctrl+d"),
+			key.WithKeys("backspace"),
 			key.WithHelp("backspace", "Delete a character"),
-			key.WithHelp("ctrl+d", "Delete a tree/node"),
 		),
 		JUMP: key.NewBinding(
 			key.WithKeys("ctrl+m"),
@@ -234,12 +245,13 @@ var (
 			key.WithHelp("shift+tab", "Autocomplete the input, index move backward"),
 		),
 		SWITCH: key.NewBinding(
-			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "e"),
+			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "e", "d"),
 			key.WithHelp("esc", "Display mode"),
 			key.WithHelp("ctrl+n", "Normal search mode"),
 			key.WithHelp("ctrl+u", "AdvancedSearch mode"),
 			key.WithHelp("ctrl+a", "Add mode"),
 			key.WithHelp("e", "Edit mode"),
+			key.WithHelp("d", "Delete mode"),
 		),
 		QUIT: key.NewBinding(
 			key.WithKeys("ctrl+c"),

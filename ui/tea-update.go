@@ -142,6 +142,39 @@ func (m *Model) afterModeChange() {
 
 		m.textarea.Focus()
 		m.textarea.SetValue(b.String())
+	case del:
+		// Here add delete operation
+		root := utils.RootTree
+
+		switch content := m.subSelected.content.(type) {
+		case *utils.Tree:
+			root.DeepDelSubTree(content.Name)
+			// log.Println(content.Name)
+		case *utils.Node:
+			hints := []string{}
+			hints = append(hints, content.Link...)
+			hints = append(hints, content.Alias...)
+			m.curTree.DelNode(hints)
+			// log.Println(content)
+		}
+		utils.WriteAll()
+
+		// no elements on right
+		//if m.subSelected.x < m.subMsgs.ylen[m.subSelected.y]-1 {
+		//	// Nothing happend
+		//}
+
+		// no elements on right but has elements on left
+		if m.subSelected.x == m.subMsgs.ylen[m.subSelected.y]-1 && m.subSelected.x > 0 {
+			m.subSelected.x--
+		}
+
+		// no elements on right and no elements on left
+		if m.subSelected.x == m.subMsgs.ylen[m.subSelected.y]-1 && m.subSelected.x == 0 {
+			m.subSelected = m.preSelectedTree[len(m.preSelectedTree)-1]
+			m.preSelectedTree = m.preSelectedTree[:len(m.preSelectedTree)-1]
+
+		}
 	}
 }
 
@@ -160,6 +193,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			helpHeight + treeTabHeight + footerHeight
 
 		if !m.ready {
+			m.delPopWin.viewport.Width = msg.Width / 3
+			m.delPopWin.viewport.Height = msg.Height / 4
+
 			m.viewport = viewport.New(msg.Width, msg.Height/2)
 			m.viewport.HighPerformanceRendering = false
 			m.viewport.KeyMap = viewport.KeyMap{}
@@ -201,8 +237,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case display:
 				if msg.String() == m.keymap.UP.Keys()[1] {
-					m.subSelected = m.preSelectedTree[len(m.preSelectedTree)-1]
-					m.preSelectedTree = m.preSelectedTree[:len(m.preSelectedTree)-1]
+					if len(m.preSelectedTree) > 0 {
+						m.subSelected = m.preSelectedTree[len(m.preSelectedTree)-1]
+						m.preSelectedTree = m.preSelectedTree[:len(m.preSelectedTree)-1]
+					}
 				}
 			}
 		case key.Matches(msg, m.keymap.DOWN):
@@ -236,11 +274,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case display:
 				if msg.String() == m.keymap.DOWN.Keys()[1] {
-					m.preSelectedTree = append(m.preSelectedTree, m.subSelected)
-					m.subSelected.x = 0
-					m.subSelected.y++
-					if m.subSelected.y > len(m.subMsgs.ylen)-1 {
-						m.subSelected.y = len(m.subMsgs.ylen) - 1
+					if m.subSelected.y < len(m.subMsgs.ylen)-1 {
+						m.preSelectedTree = append(m.preSelectedTree, m.subSelected)
+						m.subSelected.x = 0
+						m.subSelected.y++
 					}
 				}
 			}
@@ -298,6 +335,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 				}
+			case del:
+				if msg.String() == m.keymap.LEFT.Keys()[1] {
+					m.delPopWin.selectedIndex = 0
+				}
 			}
 		case key.Matches(msg, m.keymap.RIGHT):
 			switch m.mode {
@@ -353,6 +394,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 				}
+			case del:
+				if msg.String() == m.keymap.RIGHT.Keys()[1] {
+					m.delPopWin.selectedIndex = 1
+				}
 			}
 		case key.Matches(msg, m.keymap.DELETE):
 			switch m.mode {
@@ -402,25 +447,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.addInput[i].SetCursor(p - 1)
 						}
 					}
-				}
-			case display:
-				if msg.String() == m.keymap.DELETE.Keys()[1] {
-					root := utils.RootTree
-					tname := m.tabSelected.content.(string)
-					t := root.DeepFindSubTree(tname)
-
-					switch content := m.subSelected.content.(type) {
-					case *utils.Tree:
-						root.DeepDelSubTree(content.Name)
-						// log.Println(content.Name)
-					case *utils.Node:
-						hints := []string{}
-						hints = append(hints, content.Link...)
-						hints = append(hints, content.Alias...)
-						t.DelNode(hints)
-						// log.Println(content)
-					}
-					utils.WriteAll()
 				}
 			}
 
@@ -602,6 +628,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case m.keymap.SWITCH.Keys()[4]:
 				if m.lastMode == display {
 					m.mode = edit
+				}
+			case m.keymap.SWITCH.Keys()[5]:
+				if m.lastMode == display {
+					m.mode = del
 				}
 			}
 

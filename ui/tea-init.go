@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"strings"
 	"web-tree/utils"
@@ -134,6 +135,19 @@ func paginatorInit() paginator.Model {
 	return pt
 }
 
+func delPopWinInit() popWin {
+	vi := viewport.New(0, 0)
+	vi.HighPerformanceRendering = false
+	vi.KeyMap = viewport.KeyMap{}
+
+	return popWin{
+		viewport:      vi,
+		bottons:       []string{"yes", "no"},
+		hint:          "",
+		selectedIndex: 0,
+	}
+}
+
 func textareaInit() textarea.Model {
 	ta := textarea.New()
 	ta.KeyMap = textarea.KeyMap{
@@ -205,6 +219,7 @@ func InitialModel() Model {
 		toggle:     false,
 		helpToggle: false,
 		root:       root,
+		curTree:    &root,
 		mode:       search,
 		lastMode:   search,
 	}
