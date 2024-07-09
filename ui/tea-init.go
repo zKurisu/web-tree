@@ -177,11 +177,11 @@ func textareaInit() textarea.Model {
 	return ta
 }
 
-func commandInit() Command {
+func confirmInit() Confirm {
 	ti := textinput.New()
 	ti.KeyMap = textinput.KeyMap{}
 	ti.ShowSuggestions = true
-	return Command{
+	return Confirm{
 		input:  ti,
 		prompt: ":",
 		cmd:    "",
@@ -220,7 +220,7 @@ func InitialModel() Model {
 		curTree:    &root,
 		mode:       search,
 		lastMode:   search,
-		command:    commandInit(),
+		confirm:    confirmInit(),
 	}
 }
 

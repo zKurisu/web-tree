@@ -587,7 +587,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					t.AppendNode(n)
 					utils.WriteAll()
 				}
-			case command:
+			case confirm:
 				// When stroke "enter" in command mode...
 				m.lastMode = m.mode
 				m.debug = msg.String()
@@ -633,10 +633,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.lastMode == display {
 					m.mode = del
 				}
-			case m.keymap.SWITCH.Keys()[6]:
-				if m.lastMode == display {
-					m.mode = command
-				}
+				// case m.keymap.SWITCH.Keys()[6]:
+				// 	if m.lastMode == display {
+				// 		m.mode = command
+				// 	}
 			}
 
 			if m.lastMode != m.mode {

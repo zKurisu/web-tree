@@ -48,7 +48,7 @@ type Model struct {
 	mode     Mode
 	lastMode Mode
 
-	command Command
+	confirm Confirm
 
 	debug string
 }
@@ -75,7 +75,7 @@ type keyMap struct {
 	HELP     key.Binding
 }
 
-type Command struct {
+type Confirm struct {
 	input  textinput.Model
 	prompt string
 	cmd    string
@@ -116,7 +116,7 @@ const (
 	add
 	edit
 	del
-	command
+	confirm
 )
 
 var (
@@ -254,7 +254,7 @@ var (
 			key.WithHelp("ctrl+a", "Add mode"),
 			key.WithHelp("e", "Edit mode"),
 			key.WithHelp("d", "Delete mode"),
-			key.WithHelp(":", "Command mode"),
+			// key.WithHelp(":", "Command mode"),
 		),
 		QUIT: key.NewBinding(
 			key.WithKeys("ctrl+c"),
