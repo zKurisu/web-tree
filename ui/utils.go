@@ -71,6 +71,20 @@ func searchAndRender(src string, targets []string, styles []lipgloss.Style) stri
 	return src
 }
 
+func commandParse(input string) (string, []string) {
+	elements := strings.Split(input, " ")
+	return elements[0], elements[1:]
+}
+
+// Remove prefix "WT"
+func commandHandler(cmd string, args []string) bool {
+	pattern := regexp.QuoteMeta("MT")
+	re := regexp.MustCompile(pattern)
+	cmd = re.ReplaceAllString(cmd, "")
+
+	return false
+}
+
 func removeEndSpace(s string) string {
 	if s[len(s)-1] == ' ' {
 		s = s[:len(s)-1]

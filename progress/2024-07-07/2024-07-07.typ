@@ -49,6 +49,44 @@
   - prompt char, `string`
   - command, `string`
   - args, `[]string`
+- 添加 `command` mode? 按 `esc` 返回到 `display` mode, 
+- 应该只能在 `display` mode 下进入 `command` mode
+== 初始化 Command 类型结构体
+- textinput:
+  - Blink 可有可无
+  - 某些地方需要有颜色变化 
+  - No placeholder ✅
+  - 一开始不 focus (即 Blur)
+  - suggestion 的设置, 同 vim 一样, 命令行上方显示补全列表, 当前的高亮显示
+  - `Keymap = textinput.Keymap{}`, 将默认的清空 ✅
+  - 注意 trigger key stroke 为 `:` ✅
+- prompt char:
+  - 设置为 `:` ✅
+- command 和 args:
+  - 空字符串 ✅
+  - 在按下回车后, 通过解析 `textinput.Value()` 返回的字符串拆分存储到 `command` 和 `args` 中
+
+== Update Command 类型结构体
+- textinput:
+  - 在切换到 `command` mode 之后, 在 `afterModeChange()` 函数中 `Blur` 其他 input, `Focus` command 的 input
+  - 在 `updateSuggestionList()` 函数中更新 suggestion list
+  - 在 `updateUIComponents()` 函数中返回 `cmd`
+  - 在各键位下添加行为
+  - command 和 args 只有在 `enter` 时更新
+
+== 一些行为的描述
+- 在 `display` mode 下, 按 `:` 可进入 `command` mode
+- 在 `display` mode 下, 按 `d` 可进入 `command` mode 并输入 `:delete node(NODEALIAS)`, 此时回车后, 预输入 `:confirm yes|no`                   
+- `comfirm` 功能可关闭
+- 是否添加撤销功能?
+- 是否为每一个 command 添加文档说明?
+- 在 `command` mode 按下 `enter` 后, 会:
+  - 获取 `input.Value()`, 交割一个函数如 `commandParse()` 分离 `cmd` 和 `args`, 然后传递给 `commandHandler()` 实际执行
+  - 返回 `display` mode ✅
 
 = Bug 相关
 - 终端大小变化后, UI 出现问题, 需要添加动态变化
+
+= 欲添加的功能
+- 一个成员用于指名当前正在使用的 textinput
+- 增加一个额外的文件存储命令函数

@@ -177,6 +177,18 @@ func textareaInit() textarea.Model {
 	return ta
 }
 
+func commandInit() Command {
+	ti := textinput.New()
+	ti.KeyMap = textinput.KeyMap{}
+	ti.ShowSuggestions = true
+	return Command{
+		input:  ti,
+		prompt: ":",
+		cmd:    "",
+		args:   []string{},
+	}
+}
+
 func InitialModel() Model {
 	root := utils.RootTree
 	h := help.New()
@@ -208,6 +220,7 @@ func InitialModel() Model {
 		curTree:    &root,
 		mode:       search,
 		lastMode:   search,
+		command:    commandInit(),
 	}
 }
 

@@ -116,6 +116,7 @@ const (
 	add
 	edit
 	del
+	command
 )
 
 var (
@@ -246,13 +247,14 @@ var (
 			key.WithHelp("shift+tab", "Autocomplete the input, index move backward"),
 		),
 		SWITCH: key.NewBinding(
-			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "e", "d"),
+			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "e", "d", ":"),
 			key.WithHelp("esc", "Display mode"),
 			key.WithHelp("ctrl+n", "Normal search mode"),
 			key.WithHelp("ctrl+u", "AdvancedSearch mode"),
 			key.WithHelp("ctrl+a", "Add mode"),
 			key.WithHelp("e", "Edit mode"),
 			key.WithHelp("d", "Delete mode"),
+			key.WithHelp(":", "Command mode"),
 		),
 		QUIT: key.NewBinding(
 			key.WithKeys("ctrl+c"),
