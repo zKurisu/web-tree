@@ -238,6 +238,15 @@ func (m Model) paginatorView() string {
 	return b.String()
 }
 
+func (m Model) confirmView() string {
+	var b strings.Builder
+
+	if m.mode == confirm {
+		b.WriteString(m.confirm.ans.View())
+	}
+	return b.String()
+}
+
 func (m Model) viewportView() string {
 	// return viewBoxStyle.Render(m.viewport.View())
 	return m.viewport.View()
@@ -264,7 +273,7 @@ func (m Model) footerView() string {
 }
 
 func (m Model) debugView() string {
-	// start, end := m.paginator.GetSliceBounds(len(m.tabs))
+	start, end := m.paginator.GetSliceBounds(len(m.tabs))
 	s := ""
 	switch m.mode {
 	case search:
@@ -279,6 +288,8 @@ func (m Model) debugView() string {
 		s = "edit"
 	case del:
 		s = "del"
+	case confirm:
+		s = "confirm"
 	}
 
 	strYlens := []string{}
@@ -311,7 +322,9 @@ func (m Model) debugView() string {
 		"subSelected.x:" + strconv.Itoa(m.subSelected.x) + " subSelected.y:" + strconv.Itoa(m.subSelected.y) + "\n" +
 		"ylen: " + strconv.Itoa(len(m.subMsgs.ylen)) + "\n" +
 		"all ylen: " + strYlen + "\n" +
-		m.curTree.Name
+		m.curTree.Name + "\n" +
+		strconv.Itoa(len(m.tabs)) + "\n" +
+		"start: " + strconv.Itoa(start) + " end: " + strconv.Itoa(end)
 }
 
 func (m Model) View() string {
@@ -357,7 +370,7 @@ func (m Model) View() string {
 		displayBytes = append(helpBytes[:replaceLen], displayBytes[replaceLen:]...)
 	}
 
-	s := searchBox.String() + string(displayBytes) + m.helpView()
+	s := searchBox.String() + string(displayBytes) + m.confirmView() + "\n" + m.helpView()
 
 	// return lipgloss.PlaceHorizontal(150, 0.5, b.String())
 	return s

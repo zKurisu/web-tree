@@ -76,10 +76,8 @@ type keyMap struct {
 }
 
 type Confirm struct {
-	input  textinput.Model
-	prompt string
-	cmd    string
-	args   []string
+	ans  textinput.Model
+	hint string
 }
 
 type selected struct {

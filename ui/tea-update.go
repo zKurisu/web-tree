@@ -49,6 +49,9 @@ func (m *Model) updateUIComponents(msg tea.Msg) []tea.Cmd {
 
 	m.textarea, cmd = m.textarea.Update(msg)
 	cmds = append(cmds, cmd)
+
+	m.confirm.ans, cmd = m.confirm.ans.Update(msg)
+	cmds = append(cmds, cmd)
 	return cmds
 }
 
@@ -81,13 +84,25 @@ func (m *Model) updateAddInput() {
 	}
 }
 
+func (m *Model) updateConfirmInput() {
+	if m.mode == confirm {
+		m.confirm.ans.Focus()
+		m.confirm.ans.TextStyle = activeStyle
+		m.confirm.ans.PromptStyle = activeStyle
+	} else {
+		m.confirm.ans.Blur()
+		m.confirm.ans.TextStyle = inactiveStyle
+		m.confirm.ans.PromptStyle = inactiveStyle
+	}
+}
+
 func (m *Model) updateContent() {
 	m.tabSelected.content = m.tabs[m.tabSelected.index]
 
 	root := utils.RootTree
 	selectedContent, _ := m.tabSelected.content.(string)
 	t := root.FindSubTree(selectedContent)
-	m.subMsgs.ylen = []int{0}
+	m.subMsgs.ylen = []int{len(m.tabs)}
 	m.content = m.getTreeView(t, 1)
 	if m.subSelected.y == 0 {
 		m.subSelected.content = t
@@ -118,7 +133,7 @@ func (m *Model) afterModeChange() {
 
 		m.addInput[0].Focus()
 	case display:
-		sequence(m.blurSearch, m.blurAdsearch, m.blurAddInput, m.blurTextarea)
+		sequence(m.blurSearch, m.blurAdsearch, m.blurAddInput, m.blurTextarea, m.blurConfirm)
 
 		m.searchInput.ShowSuggestions = false
 		m.searchInput.Blur()
@@ -142,39 +157,29 @@ func (m *Model) afterModeChange() {
 
 		m.textarea.Focus()
 		m.textarea.SetValue(b.String())
-	case del:
-		// Here add delete operation
-		root := utils.RootTree
+	case confirm:
+		targetType := ""
+		targetHint := ""
+		operation := ""
 
-		switch content := m.subSelected.content.(type) {
-		case *utils.Tree:
-			root.DeepDelSubTree(content.Name)
-			// log.Println(content.Name)
+		switch target := m.subSelected.content.(type) {
 		case *utils.Node:
-			hints := []string{}
-			hints = append(hints, content.Link...)
-			hints = append(hints, content.Alias...)
-			m.curTree.DelNode(hints)
-			// log.Println(content)
+			targetType = "node"
+			targetHint = target.GetNodeAlias()[0]
+		case *utils.Tree:
+			targetType = "tree"
+			targetHint = target.GetTreeName()
 		}
-		utils.WriteAll()
-
-		// no elements on right
-		//if m.subSelected.x < m.subMsgs.ylen[m.subSelected.y]-1 {
-		//	// Nothing happend
-		//}
-
-		// no elements on right but has elements on left
-		if m.subSelected.x == m.subMsgs.ylen[m.subSelected.y]-1 && m.subSelected.x > 0 {
-			m.subSelected.x--
+		if m.delete {
+			operation = "detele"
 		}
 
-		// no elements on right and no elements on left
-		if m.subSelected.x == m.subMsgs.ylen[m.subSelected.y]-1 && m.subSelected.x == 0 {
-			m.subSelected = m.preSelectedTree[len(m.preSelectedTree)-1]
-			m.preSelectedTree = m.preSelectedTree[:len(m.preSelectedTree)-1]
+		m.confirm.ans.SetValue("Confirm: Do you want to " + operation + " " +
+			targetType + " [" + targetHint + "]? <yes|no> ")
+		m.confirm.hint = m.confirm.ans.Value()
+		m.confirm.ans.CursorEnd()
 
-		}
+		m.confirm.ans.Focus()
 	}
 }
 
@@ -332,7 +337,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 				}
-			case del:
+			case confirm:
+				if msg.String() == m.keymap.LEFT.Keys()[0] {
+					posi := m.confirm.ans.Position()
+					m.confirm.ans.SetCursor(posi - 1)
+				}
 			}
 		case key.Matches(msg, m.keymap.RIGHT):
 			switch m.mode {
@@ -388,7 +397,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 				}
-			case del:
+			case confirm:
+				if msg.String() == m.keymap.RIGHT.Keys()[0] {
+					posi := m.confirm.ans.Position()
+					m.confirm.ans.SetCursor(posi + 1)
+				}
 			}
 		case key.Matches(msg, m.keymap.DELETE):
 			switch m.mode {
@@ -436,6 +449,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						if p > 0 {
 							m.addInput[i].SetValue(v[:p-1] + v[p:])
 							m.addInput[i].SetCursor(p - 1)
+						}
+					}
+				}
+			case confirm:
+				if msg.String() == m.keymap.DELETE.Keys()[0] {
+					v := m.confirm.ans.Value()
+					p := m.confirm.ans.Position()
+					if len(v) != len(m.confirm.hint) {
+						if p > len(m.confirm.hint) {
+							m.confirm.ans.SetValue(v[:p-1] + v[p:])
+							m.confirm.ans.SetCursor(p - 1)
 						}
 					}
 				}
@@ -589,6 +613,73 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case confirm:
 				// When stroke "enter" in command mode...
+				answer := getLastWord(m.confirm.ans.Value())
+				if m.delete && answer == "yes" {
+					// Here add delete operation
+					root := utils.RootTree
+
+					switch content := m.subSelected.content.(type) {
+					case *utils.Tree:
+						root.DeepDelSubTree(content.GetTreeName())
+						if utils.IsRootSubTreeExist(content.GetTreeName()) {
+							utils.RootTree = utils.Tree{
+								Name:     "root",
+								SubTrees: utils.GetAllRootSubTree(),
+								Nodes:    []*utils.Node{},
+							}
+
+							start, _ := m.paginator.GetSliceBounds(len(m.tabs))
+							if m.tabSelected.index < m.subMsgs.ylen[m.subSelected.y]-1 && m.tabSelected.index > 0 {
+								m.tabSelected.content = m.tabs[m.tabSelected.index]
+								m.tabs = utils.RootTree.GetAllSubtreeName()
+							}
+							if m.tabSelected.index == m.subMsgs.ylen[m.subSelected.y]-1 && m.tabSelected.index > 0 {
+								m.tabSelected.index--
+								m.tabSelected.content = m.tabs[m.tabSelected.index]
+								m.tabs = utils.RootTree.GetAllSubtreeName()
+								if m.tabSelected.index == start-1 {
+									m.paginator.PrevPage()
+									m.paginator.SetTotalPages(len(utils.RootTree.GetAllSubtreeName()))
+								}
+								if m.tabSelected.index < 0 {
+									m.tabSelected.index = 0
+								}
+							}
+
+							// no elements on right and no elements on left
+							// if m.tabSelected.index == m.subMsgs.ylen[m.subSelected.y]-1 && m.tabSelected.index == 0 {
+							// 	m.lastMode = m.mode
+							// 	m.mode = search
+							// }
+						}
+					case *utils.Node:
+						hints := []string{}
+						hints = append(hints, content.GetNodeLinks()...)
+						hints = append(hints, content.GetNodeAlias()...)
+						m.curTree.DelNode(hints)
+						// log.Println(content)
+					}
+					utils.WriteAll()
+
+					// no elements on right
+					//if m.subSelected.x < m.subMsgs.ylen[m.subSelected.y]-1 {
+					//	// Nothing happend
+					//}
+
+					m.delete = false
+					// no elements on right but has elements on left
+					if m.subSelected.x == m.subMsgs.ylen[m.subSelected.y]-1 && m.subSelected.x > 0 {
+						m.subSelected.x--
+					}
+
+					// no elements on right and no elements on left
+					if m.subSelected.x == m.subMsgs.ylen[m.subSelected.y]-1 && m.subSelected.x == 0 {
+						m.subSelected = m.preSelectedTree[len(m.preSelectedTree)-1]
+						m.preSelectedTree = m.preSelectedTree[:len(m.preSelectedTree)-1]
+
+					}
+				}
+
 				m.lastMode = m.mode
 				m.debug = msg.String()
 				m.mode = display
@@ -631,7 +722,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case m.keymap.SWITCH.Keys()[5]:
 				if m.lastMode == display {
-					m.mode = del
+					m.mode = confirm
+					m.delete = true
 				}
 				// case m.keymap.SWITCH.Keys()[6]:
 				// 	if m.lastMode == display {
@@ -696,6 +788,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.updateContent()
 	m.updateSuggestionList()
 	m.updateTextarea()
+	// m.updateConfirmInput()
 	cmds = m.updateUIComponents(msg)
 
 	return m, tea.Batch(cmds...)

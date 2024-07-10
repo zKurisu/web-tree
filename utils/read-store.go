@@ -12,7 +12,7 @@ import (
 
 var RootTree = Tree{
 	Name:     "root",
-	SubTrees: getAllRootSubTree(),
+	SubTrees: GetAllRootSubTree(),
 	Nodes:    []*Node{},
 }
 
@@ -106,7 +106,7 @@ func getRootSubTree(name string) *Tree {
 	return t
 }
 
-func getAllRootSubTree() []*Tree {
+func GetAllRootSubTree() []*Tree {
 	list := []*Tree{}
 	for _, name := range getAllRootSubtreeName() {
 		list = append(list, getRootSubTree(name))

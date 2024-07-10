@@ -71,19 +71,34 @@ func searchAndRender(src string, targets []string, styles []lipgloss.Style) stri
 	return src
 }
 
-func commandParse(input string) (string, []string) {
-	elements := strings.Split(input, " ")
-	return elements[0], elements[1:]
+func getLastWord(s string) string {
+	// Remove space at head or tail
+	s = strings.TrimSpace(s)
+
+	// Split string by space
+	words := strings.Fields(s)
+
+	// Get last word
+	if len(words) > 0 {
+		return words[len(words)-1]
+	}
+
+	return ""
 }
 
-// Remove prefix "WT"
-func commandHandler(cmd string, args []string) bool {
-	pattern := regexp.QuoteMeta("MT")
-	re := regexp.MustCompile(pattern)
-	cmd = re.ReplaceAllString(cmd, "")
-
-	return false
-}
+// func commandParse(input string) (string, []string) {
+// 	elements := strings.Split(input, " ")
+// 	return elements[0], elements[1:]
+// }
+//
+// // Remove prefix "WT"
+// func commandHandler(cmd string, args []string) bool {
+// 	pattern := regexp.QuoteMeta("MT")
+// 	re := regexp.MustCompile(pattern)
+// 	cmd = re.ReplaceAllString(cmd, "")
+//
+// 	return false
+// }
 
 func removeEndSpace(s string) string {
 	if s[len(s)-1] == ' ' {
@@ -110,6 +125,10 @@ func (m *Model) blurAddInput() {
 
 func (m *Model) blurTextarea() {
 	m.textarea.Blur()
+}
+
+func (m *Model) blurConfirm() {
+	m.confirm.ans.Blur()
 }
 
 func sequence(fns ...func()) {

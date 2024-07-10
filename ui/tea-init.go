@@ -182,10 +182,8 @@ func confirmInit() Confirm {
 	ti.KeyMap = textinput.KeyMap{}
 	ti.ShowSuggestions = true
 	return Confirm{
-		input:  ti,
-		prompt: ":",
-		cmd:    "",
-		args:   []string{},
+		ans:  ti,
+		hint: "",
 	}
 }
 
@@ -214,6 +212,7 @@ func InitialModel() Model {
 		subMsgs:    subMsg{ylen: []int{0}},
 		tabs:       root.GetAllSubtreeName(),
 		keymap:     keymap,
+		delete:     false,
 		toggle:     false,
 		helpToggle: false,
 		root:       root,

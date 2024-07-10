@@ -2,7 +2,7 @@
 
 ```sh
 web-tree add --tree=baba/lala --node --link=https://orkarin.com,https://kurisu.com --alias=haha,lala --desc=desc1,desc2 --label=label1,label2
-web-tree add --tree=hello --node --link=https://test1.com,https://test2.com --alias=haha,lala --desc=desc1,desc2 --label=label1,label2
+web-tree add --tree=test5 --node --link=https://test5.com --alias=haha,lala --desc=desc1,desc2 --label=label1,label2
 ```
 
 > Del
