@@ -14,35 +14,37 @@ func (m Model) browserView() string {
 }
 
 func (m Model) searchView() string {
+	var s string
 	switch m.mode {
 	case search:
-		return m.searchInput.View()
+		s = m.searchInput.View()
 	case advancedSearch:
-		var s string
 		for i := range m.adSearchInput {
 			s = s + m.adSearchInput[i].View() + "\n"
 		}
 		s = s + adSearchSubmitStyle.Render("Search")
-		return s
 	case add:
-		var s string
 		for i := range m.addInput {
 			s = s + m.addInput[i].View() + "\n"
 		}
 		s = s + adSearchSubmitStyle.Render("Add")
-		return s
 	default:
-		if m.lastMode == search {
-			return m.searchInput.View()
-		} else {
-			var s string
+		switch m.lastMode {
+		case search:
+			s = m.searchInput.View()
+		case advancedSearch:
 			for i := range m.adSearchInput {
 				s = s + m.adSearchInput[i].View() + "\n"
 			}
 			s = s + adSearchSubmitStyle.Render("Search")
-			return s
+		case add:
+			for i := range m.addInput {
+				s = s + m.addInput[i].View() + "\n"
+			}
+			s = s + adSearchSubmitStyle.Render("Add")
 		}
 	}
+	return s
 }
 
 func (m Model) suggestionListView() string {

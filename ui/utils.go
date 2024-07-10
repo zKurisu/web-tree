@@ -107,6 +107,19 @@ func removeEndSpace(s string) string {
 	return s
 }
 
+func getPageNumber(index int) int {
+	return index/5 + 1
+}
+
+func getIndex(slice []string, s string) int {
+	for i, elem := range slice {
+		if s == elem {
+			return i
+		}
+	}
+	return 0
+}
+
 func (m *Model) blurSearch() {
 	m.searchInput.Blur()
 }

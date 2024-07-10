@@ -599,18 +599,43 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if i == len(m.addInput) {
 					root := utils.RootTree
 					treeName := m.addInput[0].Value()
-					links := strings.Split(m.addInput[1].Value(), " ")
-					alias := strings.Split(m.addInput[2].Value(), " ")
-					desc := strings.Split(m.addInput[3].Value(), ",")
-					label := strings.Split(m.addInput[4].Value(), " ")
-					icon := m.addInput[5].Value()
 
-					root.DeepAddNewSubTree(treeName)
-					t := root.DeepFindSubTree(treeName)
-					n, _ := utils.NewNode(links, alias, desc, icon, label, "None")
-					t.AppendNode(n)
-					utils.WriteAll()
+					if !(len(utils.SplitTreeLevel(treeName)) == 1 && utils.IsInList(root.GetAllSubtreeName(), treeName)) {
+						links := strings.Split(m.addInput[1].Value(), " ")
+						alias := strings.Split(m.addInput[2].Value(), " ")
+						desc := strings.Split(m.addInput[3].Value(), ",")
+						label := strings.Split(m.addInput[4].Value(), " ")
+						icon := m.addInput[5].Value()
+
+						root.DeepAddNewSubTree(treeName)
+						t := root.DeepFindSubTree(treeName)
+						n, _ := utils.NewNode(links, alias, desc, icon, label, "None")
+						t.AppendNode(n)
+						utils.WriteAll()
+					}
+
+					if len(utils.SplitTreeLevel(treeName)) == 1 {
+						utils.RootTree = utils.Tree{
+							Name:     "root",
+							SubTrees: utils.GetAllRootSubTree(),
+							Nodes:    []*utils.Node{},
+						}
+						m.tabs = utils.RootTree.GetAllSubtreeName()
+						m.paginator.SetTotalPages(len(utils.RootTree.GetAllSubtreeName()))
+
+						oriPageNumber := getPageNumber(m.tabSelected.index)
+						m.tabSelected.index = getIndex(m.tabs, treeName)
+						newPageNumber := getPageNumber(m.tabSelected.index)
+
+						for i := 0; i < newPageNumber-oriPageNumber; i++ {
+							m.paginator.NextPage()
+						}
+
+					}
 				}
+				m.addInpSelected.index = 0
+				m.lastMode = m.mode
+				m.mode = display
 			case confirm:
 				// When stroke "enter" in command mode...
 				answer := getLastWord(m.confirm.ans.Value())

@@ -18,4 +18,4 @@ type Confirm struct {
 流程, 按下 `d` 进入 `confirm` mode, 执行 `confirmView()` 显示输入, 根据输入判断进入是否进入 `del` mode 且改变 `operation` 字符串, 之后进行接下来的操作.
 
 = bug
-现在 m.mode = del 和 m.mode = confirm 死循环了
+现在 m.mode = del 和 m.mode = confirm 死循环了 ✅
