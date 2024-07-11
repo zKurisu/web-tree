@@ -14,6 +14,7 @@ import (
 
 type Model struct {
 	help             help.Model
+	browseInput      textinput.Model
 	searchInput      textinput.Model
 	adSearchInput    []textinput.Model
 	addInput         []textinput.Model
@@ -51,7 +52,8 @@ type Model struct {
 
 	confirm Confirm
 
-	debug string
+	browser string
+	debug   string
 }
 
 type keyMap struct {
@@ -115,8 +117,8 @@ const (
 	display
 	add
 	edit
-	del
 	confirm
+	browser
 )
 
 var (
@@ -251,11 +253,12 @@ var (
 			key.WithHelp("y", "Yank in display mode"),
 		),
 		SWITCH: key.NewBinding(
-			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "e", "d"),
+			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "ctrl+o", "e", "d"),
 			key.WithHelp("esc", "Display mode"),
 			key.WithHelp("ctrl+n", "Normal search mode"),
 			key.WithHelp("ctrl+u", "AdvancedSearch mode"),
 			key.WithHelp("ctrl+a", "Add mode"),
+			key.WithHelp("ctrl+o", "Browser mode"),
 			key.WithHelp("e", "Edit mode"),
 			key.WithHelp("d", "Set delete flag"),
 			// key.WithHelp(":", "Command mode"),

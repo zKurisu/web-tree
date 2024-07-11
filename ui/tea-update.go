@@ -15,6 +15,9 @@ import (
 
 func (m *Model) updateSuggestionList() {
 	switch m.mode {
+	case browser:
+		m.suggestionList = Fuzzy(m.browseInput.Value(), browseSuggestionInit())
+		m.browseInput.SetSuggestions(m.suggestionList)
 	case search:
 		m.suggestionList = Fuzzy(m.searchInput.Value(), searchSuggestionInit())
 		m.searchInput.SetSuggestions(m.suggestionList)
@@ -29,6 +32,9 @@ func (m *Model) updateSuggestionList() {
 func (m *Model) updateUIComponents(msg tea.Msg) []tea.Cmd {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
+
+	m.browseInput, cmd = m.browseInput.Update(msg)
+	cmds = append(cmds, cmd)
 
 	m.searchInput, cmd = m.searchInput.Update(msg)
 	cmds = append(cmds, cmd)
@@ -86,6 +92,18 @@ func (m *Model) updateAddInput() {
 	}
 }
 
+func (m *Model) updateBrowseInput() {
+	if m.mode == browser {
+		m.browseInput.Focus()
+		m.browseInput.TextStyle = activeStyle
+		m.browseInput.PromptStyle = activeStyle
+	} else {
+		m.browseInput.Blur()
+		m.browseInput.TextStyle = inactiveStyle
+		m.browseInput.PromptStyle = inactiveStyle
+	}
+}
+
 func (m *Model) updateConfirmInput() {
 	if m.mode == confirm {
 		m.confirm.ans.Focus()
@@ -118,24 +136,29 @@ func (m *Model) updateTextarea() {
 
 func (m *Model) afterModeChange() {
 	switch m.mode {
+	case browser:
+		sequence(m.blurSearch, m.blurAdsearch, m.blurAddInput, m.blurTextarea)
+
+		m.browseInput.Focus()
+		m.browseInput.ShowSuggestions = true
 	case search:
-		sequence(m.blurAdsearch, m.blurAddInput, m.blurTextarea)
+		sequence(m.blurAdsearch, m.blurAddInput, m.blurTextarea, m.blurBrowse)
 
 		m.searchInput.Focus()
 		m.searchInput.ShowSuggestions = true
 	case advancedSearch:
-		sequence(m.blurSearch, m.blurAddInput, m.blurTextarea)
+		sequence(m.blurSearch, m.blurAddInput, m.blurTextarea, m.blurBrowse)
 
 		m.adSearchInput[0].Focus()
 		for i := range m.adSearchInput {
 			m.adSearchInput[i].ShowSuggestions = true
 		}
 	case add:
-		sequence(m.blurSearch, m.blurAdsearch, m.blurTextarea)
+		sequence(m.blurSearch, m.blurAdsearch, m.blurTextarea, m.blurBrowse)
 
 		m.addInput[0].Focus()
 	case display:
-		sequence(m.blurSearch, m.blurAdsearch, m.blurAddInput, m.blurTextarea, m.blurConfirm)
+		sequence(m.blurSearch, m.blurAdsearch, m.blurAddInput, m.blurTextarea, m.blurConfirm, m.blurBrowse)
 
 		m.searchInput.ShowSuggestions = false
 		m.searchInput.Blur()
@@ -217,6 +240,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.HighPerformanceRendering = false
 			m.viewport.KeyMap = viewport.KeyMap{}
 			m.viewport.SetContent(m.content)
+			m.browseInput.Width = msg.Width / 8
 			m.ready = true
 		} else {
 			m.viewport.Width = msg.Width / 2
@@ -227,6 +251,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keymap.UP):
 			switch m.mode {
+			case browser:
+				if msg.String() == m.keymap.UP.Keys()[0] {
+					m.sugSelected.index--
+					if m.sugSelected.index < 0 {
+						m.sugSelected.index = len(m.browseInput.AvailableSuggestions()) - 1
+					}
+				}
 			case search:
 				if msg.String() == m.keymap.UP.Keys()[0] {
 					m.sugSelected.index--
@@ -262,6 +293,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, m.keymap.DOWN):
 			switch m.mode {
+			case browser:
+				if msg.String() == m.keymap.DOWN.Keys()[0] {
+					m.sugSelected.index++
+					if m.sugSelected.index >= len(m.browseInput.AvailableSuggestions()) {
+						m.sugSelected.index = 0
+					}
+				}
 			case search:
 				if msg.String() == m.keymap.DOWN.Keys()[0] {
 					m.sugSelected.index++
@@ -300,6 +338,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, m.keymap.LEFT):
 			switch m.mode {
+			case browser:
+				if msg.String() == m.keymap.LEFT.Keys()[0] {
+					posi := m.browseInput.Position()
+					m.browseInput.SetCursor(posi - 1)
+				}
 			case search:
 				if msg.String() == m.keymap.LEFT.Keys()[0] {
 					posi := m.searchInput.Position()
@@ -360,6 +403,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, m.keymap.RIGHT):
 			switch m.mode {
+			case browser:
+				if msg.String() == m.keymap.RIGHT.Keys()[0] {
+					posi := m.browseInput.Position()
+					m.browseInput.SetCursor(posi + 1)
+				}
 			case search:
 				if msg.String() == m.keymap.RIGHT.Keys()[0] {
 					posi := m.searchInput.Position()
@@ -420,6 +468,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, m.keymap.DELETE):
 			switch m.mode {
+			case browser:
+				if msg.String() == m.keymap.DELETE.Keys()[0] {
+					v := m.browseInput.Value()
+					p := m.browseInput.Position()
+					if len(v) != 0 {
+						if p > 0 {
+							m.browseInput.SetValue(v[:p-1] + v[p:])
+							m.browseInput.SetCursor(p - 1)
+						}
+					}
+				}
 			case search:
 				if msg.String() == m.keymap.DELETE.Keys()[0] {
 					v := m.searchInput.Value()
@@ -491,6 +550,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, m.keymap.COMPLETE):
 			switch m.mode {
+			case browser:
+				if msg.String() == m.keymap.COMPLETE.Keys()[0] {
+					if len(m.suggestionList) != 0 {
+						if m.sugSelected.index == 0 && m.browseInput.Value() != m.browseInput.AvailableSuggestions()[0] {
+							m.browseInput.SetValue(m.browseInput.AvailableSuggestions()[0])
+						} else {
+							m.sugSelected.index++
+							if m.sugSelected.index > len(m.browseInput.AvailableSuggestions())-1 {
+								m.sugSelected.index = 0
+							}
+							m.browseInput.SetValue(m.browseInput.AvailableSuggestions()[m.sugSelected.index])
+						}
+					}
+				} else if msg.String() == m.keymap.COMPLETE.Keys()[1] {
+					if len(m.suggestionList) != 0 {
+						m.sugSelected.index--
+						if m.sugSelected.index < 0 {
+							m.sugSelected.index = len(m.browseInput.AvailableSuggestions()) - 1
+						}
+						m.browseInput.SetValue(m.browseInput.AvailableSuggestions()[m.sugSelected.index])
+					}
+				}
+				m.browseInput.CursorEnd()
 			case search:
 				if msg.String() == m.keymap.COMPLETE.Keys()[0] {
 					if len(m.suggestionList) != 0 {
@@ -547,6 +629,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, m.keymap.SELECT):
 			switch m.mode {
+			case browser:
+				// m.browseInput.SetValue(m.browseInput.AvailableSuggestions()[m.sugSelected.index])
+				// m.browseInput.CursorEnd()
+				m.browser = m.browseInput.Value()
+				tmp := m.lastMode
+				m.lastMode = m.mode
+				m.mode = tmp
+				m.afterModeChange()
 			case search:
 				if len(m.suggestionList) != 0 {
 					m.searchInput.SetValue(m.searchInput.AvailableSuggestions()[m.sugSelected.index])
@@ -608,6 +698,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if t != nil {
 						m.subMsgs.searchedContent = t.FindNode(hints)
 					}
+					m.lastMode = m.mode
 					m.mode = display
 					m.afterModeChange()
 					break
@@ -740,7 +831,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					case *utils.Node:
 						index, _ := strconv.Atoi(answer)
 						if index < len(content.GetNodeLinks()) {
-							openLink("firefox", content.GetNodeLinks()[index-1])
+							openLink(m.browser, content.GetNodeLinks()[index-1])
 							m.open = false
 						}
 					}
@@ -789,10 +880,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case m.keymap.SWITCH.Keys()[3]:
 				m.mode = add
 			case m.keymap.SWITCH.Keys()[4]:
+				m.mode = browser
+			case m.keymap.SWITCH.Keys()[5]:
 				if m.lastMode == display {
 					m.mode = edit
 				}
-			case m.keymap.SWITCH.Keys()[5]:
+			case m.keymap.SWITCH.Keys()[6]:
 				if m.lastMode == display {
 					m.mode = confirm
 					m.delete = true
@@ -856,6 +949,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	m.updateAdSearch()
+	m.updateBrowseInput()
 	m.updateAddInput()
 	m.updateContent()
 	m.updateSuggestionList()

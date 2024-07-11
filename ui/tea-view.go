@@ -10,7 +10,9 @@ import (
 var count = 0
 
 func (m Model) browserView() string {
-	return ""
+	var s string
+	s = m.browseInput.View()
+	return s
 }
 
 func (m Model) searchView() string {
@@ -50,6 +52,23 @@ func (m Model) searchView() string {
 func (m Model) suggestionListView() string {
 	var b strings.Builder
 	switch m.mode {
+	case browser:
+		input := m.browseInput.Value()
+		renderTargets := []string{
+			input,
+		}
+		styles := []lipgloss.Style{
+			suggestionMatchedStyle,
+		}
+		for i, suggestion := range m.suggestionList {
+			suggestion = searchAndRender(suggestion, renderTargets, styles)
+			if i == m.sugSelected.index {
+				suggestion = suggestionSelectedStyle.Render(suggestionSelectedSuroundLeft) +
+					suggestion +
+					suggestionSelectedStyle.Render(suggestionSelectedSuroundRight)
+			}
+			b.WriteString(suggestion + "\n")
+		}
 	case search:
 		input := m.searchInput.Value()
 		renderTargets := []string{
@@ -288,8 +307,6 @@ func (m Model) debugView() string {
 		s = "add"
 	case edit:
 		s = "edit"
-	case del:
-		s = "del"
 	case confirm:
 		s = "confirm"
 	}
@@ -305,7 +322,7 @@ func (m Model) debugView() string {
 		preStr += "{" + strconv.Itoa(point.x) + "," + strconv.Itoa(point.y) + "}"
 	}
 
-	m.debug = utils.CONF.GetBrowser()[0]
+	m.debug = m.browser
 	// if m.copy {
 	// 	m.debug = "copy.."
 	// }
@@ -342,6 +359,8 @@ func (m Model) View() string {
 	var searchBox strings.Builder
 	var displayBox strings.Builder
 	var replaceLen int = 0
+	searchBox.WriteString(m.browserView()) // Browser box is needed
+	searchBox.WriteString("   ")
 	searchBox.WriteString(m.searchView())
 	searchBox.WriteString("\n")
 	// searchBox.WriteString(m.suggestionListView())

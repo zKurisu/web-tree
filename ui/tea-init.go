@@ -63,6 +63,19 @@ func adSearchSuggestionInit() [][]string {
 	return suggestions
 }
 
+func browseSuggestionInit() []string {
+	return utils.CONF.GetBrowser()
+}
+
+func browseInputInit() textinput.Model {
+	ti := textinput.New()
+	ti.KeyMap = textinput.KeyMap{}
+	ti.Placeholder = "Input browser command"
+	ti.SetSuggestions(browseSuggestionInit())
+	ti.ShowSuggestions = true
+	return ti
+}
+
 func searchInputInit() textinput.Model {
 	ti := textinput.New()
 	ti.KeyMap = textinput.KeyMap{}
@@ -194,6 +207,7 @@ func InitialModel() Model {
 
 	return Model{
 		help:             h,
+		browseInput:      browseInputInit(),
 		searchInput:      searchInputInit(),
 		adSearchInput:    advancedSearchInputInit(),
 		addInput:         addInputInit(),
@@ -222,6 +236,8 @@ func InitialModel() Model {
 		mode:       search,
 		lastMode:   search,
 		confirm:    confirmInit(),
+
+		browser: utils.CONF.GetBrowser()[0],
 	}
 }
 

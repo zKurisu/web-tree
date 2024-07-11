@@ -158,6 +158,10 @@ func (m *Model) blurConfirm() {
 	m.confirm.ans.Blur()
 }
 
+func (m *Model) blurBrowse() {
+	m.browseInput.Blur()
+}
+
 func sequence(fns ...func()) {
 	for _, fn := range fns {
 		fn()
