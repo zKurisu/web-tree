@@ -3,9 +3,11 @@ package ui
 import (
 	"github.com/charmbracelet/bubbles/key"
 	// "github.com/charmbracelet/bubbles/paginator"
+	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
 	"strconv"
 	"strings"
 	"web-tree/utils"
@@ -161,6 +163,7 @@ func (m *Model) afterModeChange() {
 		targetType := ""
 		targetHint := ""
 		operation := ""
+		ansHint := ""
 
 		switch target := m.subSelected.content.(type) {
 		case *utils.Node:
@@ -172,10 +175,22 @@ func (m *Model) afterModeChange() {
 		}
 		if m.delete {
 			operation = "detele"
+			ansHint = " <yes|no> "
+		} else if m.copy {
+			operation = "copy"
+			targetType = "Link"
+			targetHint = "Enter order of link"
+			ansHint = " <1|2|..> "
+			// m.debug = "In copy?"
+		} else if m.open {
+			operation = "open"
+			targetType = "Link"
+			targetHint = "Enter order of link"
+			ansHint = " <1|2|..> "
 		}
 
 		m.confirm.ans.SetValue("Confirm: Do you want to " + operation + " " +
-			targetType + " [" + targetHint + "]? <yes|no> ")
+			targetType + " [" + targetHint + "]?" + ansHint)
 		m.confirm.hint = m.confirm.ans.Value()
 		m.confirm.ans.CursorEnd()
 
@@ -464,7 +479,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
-
+		case key.Matches(msg, m.keymap.COPY):
+			if m.mode == display {
+				switch m.subSelected.content.(type) {
+				case *utils.Node:
+					m.lastMode = m.mode
+					m.mode = confirm
+					m.copy = true
+					m.afterModeChange()
+				}
+			}
 		case key.Matches(msg, m.keymap.COMPLETE):
 			switch m.mode {
 			case search:
@@ -701,12 +725,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.subSelected.x == m.subMsgs.ylen[m.subSelected.y]-1 && m.subSelected.x == 0 {
 						m.subSelected = m.preSelectedTree[len(m.preSelectedTree)-1]
 						m.preSelectedTree = m.preSelectedTree[:len(m.preSelectedTree)-1]
-
+					}
+				} else if m.copy {
+					switch content := m.subSelected.content.(type) {
+					case *utils.Node:
+						index, _ := strconv.Atoi(answer)
+						if index < len(content.GetNodeLinks()) {
+							clipboard.WriteAll(content.GetNodeLinks()[index-1])
+							m.copy = false
+						}
+					}
+				} else if m.open {
+					switch content := m.subSelected.content.(type) {
+					case *utils.Node:
+						index, _ := strconv.Atoi(answer)
+						if index < len(content.GetNodeLinks()) {
+							openLink("firefox", content.GetNodeLinks()[index-1])
+							m.open = false
+						}
 					}
 				}
 
 				m.lastMode = m.mode
-				m.debug = msg.String()
+				// m.debug = msg.String()
 				m.mode = display
 
 				if m.lastMode != m.mode {
@@ -724,6 +765,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.adSearchInput[i].CursorStart()
 			}
 		case key.Matches(msg, m.keymap.OPEN):
+			if m.mode == display {
+				m.lastMode = m.mode
+				m.mode = confirm
+				m.open = true
+				m.afterModeChange()
+			}
 		case key.Matches(msg, m.keymap.JUMP):
 		case key.Matches(msg, m.keymap.TOGGLE):
 			m.toggle = !m.toggle
@@ -731,7 +778,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keymap.SINGLE):
 		case key.Matches(msg, m.keymap.SWITCH):
 			m.lastMode = m.mode
-			m.debug = msg.String()
+			// m.debug = msg.String()
 			switch msg.String() {
 			case m.keymap.SWITCH.Keys()[0]:
 				m.mode = display

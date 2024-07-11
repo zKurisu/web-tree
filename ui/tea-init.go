@@ -213,6 +213,8 @@ func InitialModel() Model {
 		tabs:       root.GetAllSubtreeName(),
 		keymap:     keymap,
 		delete:     false,
+		copy:       false,
+		open:       false,
 		toggle:     false,
 		helpToggle: false,
 		root:       root,

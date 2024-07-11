@@ -3,9 +3,11 @@ package ui
 import (
 	"github.com/charmbracelet/lipgloss"
 	"log"
+	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
+	"syscall"
 )
 
 func Fuzzy(src string, targets []string) []string {
@@ -118,6 +120,18 @@ func getIndex(slice []string, s string) int {
 		}
 	}
 	return 0
+}
+
+func openLink(browser string, link string) bool {
+	cmd := exec.Command(browser, link)
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+	}
+
+	if err := cmd.Start(); err != nil {
+		return false
+	}
+	return true
 }
 
 func (m *Model) blurSearch() {

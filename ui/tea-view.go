@@ -305,6 +305,11 @@ func (m Model) debugView() string {
 		preStr += "{" + strconv.Itoa(point.x) + "," + strconv.Itoa(point.y) + "}"
 	}
 
+	m.debug = utils.CONF.GetBrowser()[0]
+	// if m.copy {
+	// 	m.debug = "copy.."
+	// }
+
 	//switch content := m.subSelected.content.(type) {
 	//case *utils.Tree:
 	//	m.debug = content.GetFatherName()

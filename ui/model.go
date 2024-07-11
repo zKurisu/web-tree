@@ -42,6 +42,7 @@ type Model struct {
 	helpToggle bool
 	delete     bool
 	copy       bool
+	open       bool
 	paste      bool
 	curTree    *utils.Tree
 
@@ -67,6 +68,7 @@ type keyMap struct {
 	TOGGLE   key.Binding
 	DETAIL   key.Binding
 	SINGLE   key.Binding
+	COPY     key.Binding
 	COMPLETE key.Binding
 	SELECT   key.Binding
 	SWITCH   key.Binding
@@ -208,8 +210,8 @@ var (
 			key.WithHelp("ctrl+r", "Clear input text"),
 		),
 		OPEN: key.NewBinding(
-			key.WithKeys("ctrl+o"),
-			key.WithHelp("ctrl+o", "Open the link"),
+			key.WithKeys("o"),
+			key.WithHelp("o", "Open the link"),
 		),
 		DELETE: key.NewBinding(
 			key.WithKeys("backspace"),
@@ -244,14 +246,18 @@ var (
 			key.WithHelp("tab", "Autocomplete the input, index move forward"),
 			key.WithHelp("shift+tab", "Autocomplete the input, index move backward"),
 		),
+		COPY: key.NewBinding(
+			key.WithKeys("y"),
+			key.WithHelp("y", "Yank in display mode"),
+		),
 		SWITCH: key.NewBinding(
-			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "e", "d", ":"),
+			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "e", "d"),
 			key.WithHelp("esc", "Display mode"),
 			key.WithHelp("ctrl+n", "Normal search mode"),
 			key.WithHelp("ctrl+u", "AdvancedSearch mode"),
 			key.WithHelp("ctrl+a", "Add mode"),
 			key.WithHelp("e", "Edit mode"),
-			key.WithHelp("d", "Delete mode"),
+			key.WithHelp("d", "Set delete flag"),
 			// key.WithHelp(":", "Command mode"),
 		),
 		QUIT: key.NewBinding(

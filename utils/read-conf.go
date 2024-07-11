@@ -10,6 +10,7 @@ import (
 
 var CONFIG_FILE = conf.GetConfigName()
 var CONFIG_PATH = conf.GetConfigPath()
+var CONF = GetConf()
 
 type Conf struct {
 	Main struct {
@@ -59,4 +60,8 @@ func GetConf() Conf {
 	}
 
 	return c
+}
+
+func (c Conf) GetBrowser() []string {
+	return c.Main.Browser
 }
