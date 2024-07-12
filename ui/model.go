@@ -33,6 +33,7 @@ type Model struct {
 	subSelected     point
 	preSelectedTree []point
 
+	winMsgs winMsg
 	subMsgs subMsg
 	content string
 	keymap  keyMap
@@ -109,6 +110,11 @@ type subMsg struct {
 	searchedContent interface{}
 }
 
+type winMsg struct {
+	Width  int
+	Height int
+}
+
 type Mode int
 
 const (
@@ -122,10 +128,9 @@ const (
 )
 
 var (
-	treePerPage = 5
-	treeWidth   = 5
-	treeHeight  = 5
-	treeGap     = 5
+	treeWidth  = 5
+	treeHeight = 5
+	treeGap    = 5
 
 	treePrefix                     = "*tree "
 	nodePrefix                     = "*node "
@@ -150,6 +155,10 @@ var (
 	activeStyle   = noStyle.Copy().Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"})
 	inactiveStyle = noStyle.Copy().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"})
 
+	inactiveTabBorder = tabBorderWithBottom("┴", "─", "┴")
+	activeTabBorder   = tabBorderWithBottom("┘", " ", "└")
+	highlightColor    = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
+
 	searchBoxStyle          = lipgloss.NewStyle()
 	suggestionBoxStyle      = lipgloss.NewStyle()
 	suggestionTreeStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#248"))
@@ -163,8 +172,8 @@ var (
 
 	// treeTabBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
 	// treeTabBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder())
-	treeTabBoxStyle         = inactiveStyle.Copy()
-	treeTabBoxSelectedStyle = activeStyle.Copy()
+	treeTabBoxStyle         = lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(highlightColor).Padding(0, 1)
+	treeTabBoxSelectedStyle = treeTabBoxStyle.Copy().Border(activeTabBorder, true)
 
 	treeBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
 	treeBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder()).Background(lipgloss.Color("#476"))
@@ -212,8 +221,8 @@ var (
 			key.WithHelp("ctrl+r", "Clear input text"),
 		),
 		OPEN: key.NewBinding(
-			key.WithKeys("o"),
-			key.WithHelp("o", "Open the link"),
+			key.WithKeys("ctrl+x"),
+			key.WithHelp("ctrl+x", "Open the link"),
 		),
 		DELETE: key.NewBinding(
 			key.WithKeys("backspace"),
@@ -232,8 +241,8 @@ var (
 			key.WithHelp("ctrl+[", "Show all message of a node"),
 		),
 		SINGLE: key.NewBinding(
-			key.WithKeys("ctrl+x"),
-			key.WithHelp("ctrl+x", "Show single tree horizontally"),
+			key.WithKeys("ctrl+]"),
+			key.WithHelp("ctrl+]", "Show single tree horizontally"),
 		),
 		SELECT: key.NewBinding(
 			key.WithKeys("enter"),
@@ -249,18 +258,18 @@ var (
 			key.WithHelp("shift+tab", "Autocomplete the input, index move backward"),
 		),
 		COPY: key.NewBinding(
-			key.WithKeys("y"),
-			key.WithHelp("y", "Yank in display mode"),
+			key.WithKeys("ctrl+y"),
+			key.WithHelp("ctrl+y", "Yank in display mode"),
 		),
 		SWITCH: key.NewBinding(
-			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "ctrl+o", "e", "d"),
+			key.WithKeys("esc", "ctrl+n", "ctrl+u", "ctrl+a", "ctrl+o", "ctrl+e", "ctrl+d"),
 			key.WithHelp("esc", "Display mode"),
 			key.WithHelp("ctrl+n", "Normal search mode"),
 			key.WithHelp("ctrl+u", "AdvancedSearch mode"),
 			key.WithHelp("ctrl+a", "Add mode"),
 			key.WithHelp("ctrl+o", "Browser mode"),
-			key.WithHelp("e", "Edit mode"),
-			key.WithHelp("d", "Set delete flag"),
+			key.WithHelp("ctrl+e", "Edit mode"),
+			key.WithHelp("ctrl+d", "Set delete flag"),
 			// key.WithHelp(":", "Command mode"),
 		),
 		QUIT: key.NewBinding(
@@ -285,4 +294,12 @@ func (k keyMap) FullHelp() [][]key.Binding {
 		{k.UP, k.DOWN, k.LEFT, k.RIGHT},
 		{k.HELP, k.QUIT, k.SWITCH},
 	}
+}
+
+func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
+	border := lipgloss.RoundedBorder()
+	border.BottomLeft = left
+	border.Bottom = middle
+	border.BottomRight = right
+	return border
 }

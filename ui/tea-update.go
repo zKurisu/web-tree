@@ -230,21 +230,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		searchBoxHeight := lipgloss.Height(m.searchView())
 		treeTabHeight := lipgloss.Height(m.treeTabView())
 		helpHeight := lipgloss.Height(m.helpView())
+		paginatorHeight := lipgloss.Height(m.paginatorView())
+		debugHeight := lipgloss.Height(m.debugView())
 		footerHeight := lipgloss.Height(m.footerView())
 
 		verticalMarginHeight := searchBoxHeight +
-			helpHeight + treeTabHeight + footerHeight
+			helpHeight + treeTabHeight + paginatorHeight +
+			debugHeight + footerHeight
+		m.winMsgs.Width = msg.Width
+		m.winMsgs.Height = msg.Height - verticalMarginHeight
 
 		if !m.ready {
-			m.viewport = viewport.New(msg.Width, msg.Height/2)
+			m.paginator = paginatorInit(msg.Width/8 - 2)
+			m.viewport = viewport.New(msg.Width-2, msg.Height-verticalMarginHeight-2*searchBoxHeight-2)
 			m.viewport.HighPerformanceRendering = false
 			m.viewport.KeyMap = viewport.KeyMap{}
 			m.viewport.SetContent(m.content)
 			m.browseInput.Width = msg.Width / 8
+			// m.viewport.YPosition = searchBoxHeight + treeTabHeight + 1
 			m.ready = true
 		} else {
-			m.viewport.Width = msg.Width / 2
-			m.viewport.Height = msg.Height - verticalMarginHeight
+			m.paginator.PerPage = msg.Width/8 - 2
+			m.viewport.Width = msg.Width - 2
+			m.viewport.Height = msg.Height - verticalMarginHeight - 2*searchBoxHeight - 2
 		}
 
 	case tea.KeyMsg:
@@ -288,6 +296,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if len(m.preSelectedTree) > 0 {
 						m.subSelected = m.preSelectedTree[len(m.preSelectedTree)-1]
 						m.preSelectedTree = m.preSelectedTree[:len(m.preSelectedTree)-1]
+						// if m.viewport.YOffset-m.subSelected.y > 0 {
+						// 	m.viewport.YOffset -= 3
+						// }
 					}
 				}
 			}
@@ -333,6 +344,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.preSelectedTree = append(m.preSelectedTree, m.subSelected)
 						m.subSelected.x = 0
 						m.subSelected.y++
+						// if m.subSelected.y-m.viewport.YOffset > 1 {
+						// 	m.viewport.YOffset += 3
+						// }
 					}
 				}
 			}
@@ -633,9 +647,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// m.browseInput.SetValue(m.browseInput.AvailableSuggestions()[m.sugSelected.index])
 				// m.browseInput.CursorEnd()
 				m.browser = m.browseInput.Value()
-				tmp := m.lastMode
-				m.lastMode = m.mode
-				m.mode = tmp
+				m.mode = m.lastMode
+				m.lastMode = browser
 				m.afterModeChange()
 			case search:
 				if len(m.suggestionList) != 0 {
@@ -725,7 +738,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						root.DeepAddNewSubTree(treeName)
 						t := root.DeepFindSubTree(treeName)
 						n, _ := utils.NewNode(links, alias, desc, icon, label, "None")
-						t.AppendNode(n)
+						if len(links) != 0 && links[0] != "" {
+							t.AppendNode(n)
+						}
 						utils.WriteAll()
 					}
 
@@ -955,7 +970,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.updateSuggestionList()
 	m.updateTextarea()
 	// m.updateConfirmInput()
-	cmds = m.updateUIComponents(msg)
+	cmds = append(cmds, m.updateUIComponents(msg)...)
 
 	return m, tea.Batch(cmds...)
 }

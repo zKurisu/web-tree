@@ -136,7 +136,7 @@ func addInputInit() []textinput.Model {
 	return inputs
 }
 
-func paginatorInit() paginator.Model {
+func paginatorInit(treePerPage int) paginator.Model {
 	pt := paginator.New()
 	pt.KeyMap = paginator.KeyMap{}
 	pt.PerPage = treePerPage
@@ -211,7 +211,6 @@ func InitialModel() Model {
 		searchInput:      searchInputInit(),
 		adSearchInput:    advancedSearchInputInit(),
 		addInput:         addInputInit(),
-		paginator:        paginatorInit(),
 		suggestionList:   searchSuggestionInit(),
 		adsuggestionList: adSearchSuggestionInit(),
 		textarea:         textareaInit(),

@@ -269,8 +269,8 @@ func (m Model) confirmView() string {
 }
 
 func (m Model) viewportView() string {
-	// return viewBoxStyle.Render(m.viewport.View())
-	return m.viewport.View()
+	return viewBoxStyle.Render(m.viewport.View())
+	// return m.viewport.View()
 }
 
 func (m Model) singleTreeView() string {
@@ -294,7 +294,8 @@ func (m Model) footerView() string {
 }
 
 func (m Model) debugView() string {
-	start, end := m.paginator.GetSliceBounds(len(m.tabs))
+	// start, end := m.paginator.GetSliceBounds(len(m.tabs))
+	lastMode := ""
 	s := ""
 	switch m.mode {
 	case search:
@@ -309,20 +310,38 @@ func (m Model) debugView() string {
 		s = "edit"
 	case confirm:
 		s = "confirm"
+	case browser:
+		s = "browser"
+	}
+	switch m.lastMode {
+	case search:
+		lastMode = "search"
+	case advancedSearch:
+		lastMode = "advancedSearch"
+	case display:
+		lastMode = "display"
+	case add:
+		lastMode = "add"
+	case edit:
+		lastMode = "edit"
+	case confirm:
+		lastMode = "confirm"
+	case browser:
+		lastMode = "browser"
 	}
 
 	strYlens := []string{}
 	for _, ylen := range m.subMsgs.ylen {
 		strYlens = append(strYlens, strconv.Itoa(ylen))
 	}
-	strYlen := strings.Join(strYlens, " ")
+	// strYlen := strings.Join(strYlens, " ")
 
 	preStr := ""
 	for _, point := range m.preSelectedTree {
 		preStr += "{" + strconv.Itoa(point.x) + "," + strconv.Itoa(point.y) + "}"
 	}
 
-	m.debug = m.browser
+	m.debug = strconv.Itoa(m.viewport.YOffset)
 	// if m.copy {
 	// 	m.debug = "copy.."
 	// }
@@ -340,15 +359,15 @@ func (m Model) debugView() string {
 	// 	"\n" + "point x, y: " + strconv.Itoa(m.subSelected.x) + " " + strconv.Itoa(m.subSelected.y) +
 	// 	"\n" + strconv.Itoa(len(m.subMsgs.ylen))
 	// 	"\n" + strconv.Itoa(count)
-	return s + " " + m.debug + " " + strconv.Itoa(m.addInpSelected.index) + "\n" +
+	return "last: " + lastMode + " current: " + s + " " + m.debug + " " + "\n" +
 		// "PreSelectedTree.x:" + strconv.Itoa(m.preSelectedTree.x) + " PreSelectedTree.y:" + strconv.Itoa(m.preSelectedTree.y) + "\n" +
-		"PreSelectedTree: " + preStr + "\n" +
+		// "PreSelectedTree: " + preStr + "\n" +
 		"subSelected.x:" + strconv.Itoa(m.subSelected.x) + " subSelected.y:" + strconv.Itoa(m.subSelected.y) + "\n" +
-		"ylen: " + strconv.Itoa(len(m.subMsgs.ylen)) + "\n" +
-		"all ylen: " + strYlen + "\n" +
-		m.curTree.Name + "\n" +
-		strconv.Itoa(len(m.tabs)) + "\n" +
-		"start: " + strconv.Itoa(start) + " end: " + strconv.Itoa(end)
+		// "ylen: " + strconv.Itoa(len(m.subMsgs.ylen)) + "\n" +
+		// "all ylen: " + strYlen + "\n" +
+		// m.curTree.Name + "\n" +
+		// strconv.Itoa(len(m.tabs)) + "\n" +
+		"Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height)
 }
 
 func (m Model) View() string {
@@ -372,8 +391,8 @@ func (m Model) View() string {
 	displayBox.WriteString("\n")
 	displayBox.WriteString(m.paginatorView())
 	displayBox.WriteString("\n")
-	displayBox.WriteString(m.debugView())
-	displayBox.WriteString("\n")
+	// displayBox.WriteString(m.debugView())
+	// displayBox.WriteString("\n")
 
 	suggestionListBytes := []byte(m.suggestionListView())
 	// delPopWinBytes := []byte(m.delPopWinView())
@@ -396,8 +415,9 @@ func (m Model) View() string {
 		displayBytes = append(helpBytes[:replaceLen], displayBytes[replaceLen:]...)
 	}
 
-	s := searchBox.String() + string(displayBytes) + m.confirmView() + "\n" + m.helpView()
+	// s := searchBox.String() + "\n" + string(displayBytes) + "\n" + m.confirmView() + "\n" + m.helpView()
+	s := lipgloss.JoinVertical(0, searchBox.String(), string(displayBytes), m.confirmView(), m.helpView())
 
-	// return lipgloss.PlaceHorizontal(150, 0.5, b.String())
+	// return lipgloss.PlaceHorizontal(100, 0.5, s)
 	return s
 }
