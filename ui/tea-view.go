@@ -254,7 +254,7 @@ func (m Model) expandNodeView(n *utils.Node) string {
 func (m Model) paginatorView() string {
 	var b strings.Builder
 
-	b.WriteString(strings.Repeat("\n", paginatorHeight))
+	// b.WriteString(strings.Repeat("\n", paginatorHeight))
 	b.WriteString(m.paginator.View())
 	return b.String()
 }
@@ -282,15 +282,44 @@ func (m Model) helpView() string {
 }
 
 func (m Model) headerView() string {
-	return ""
+	var searchBox strings.Builder
+	searchBox.WriteString(m.browserView()) // Browser box is needed
+	searchBox.WriteString("\n")
+	searchBox.WriteString(m.searchView())
+	return searchBox.String()
 }
 
 func (m Model) bodyView() string {
-	return ""
+	var displayBox strings.Builder
+	var replaceLen int = 0
+
+	displayBox.WriteString(m.treeTabView())
+	displayBox.WriteString("\n")
+	displayBox.WriteString(m.viewportView())
+	displayBox.WriteString("\n")
+	displayBox.WriteString(m.paginatorView())
+	displayBox.WriteString("\n")
+	displayBox.WriteString(m.debugView())
+	displayBox.WriteString("\n")
+
+	suggestionListBytes := []byte(m.suggestionListView())
+	// delPopWinBytes := []byte(m.delPopWinView())
+	displayBytes := []byte(displayBox.String())
+	if len(suggestionListBytes) > len(displayBytes) {
+		replaceLen = len(displayBytes)
+	} else {
+		replaceLen = len(suggestionListBytes)
+	}
+	displayBytes = append(suggestionListBytes[:replaceLen], displayBytes[replaceLen:]...)
+	return string(displayBytes)
 }
 
 func (m Model) footerView() string {
-	return ""
+	var footerBox strings.Builder
+	footerBox.WriteString(m.confirmView())
+	footerBox.WriteString("\n")
+	footerBox.WriteString(m.helpView())
+	return footerBox.String()
 }
 
 func (m Model) debugView() string {
@@ -340,6 +369,7 @@ func (m Model) debugView() string {
 	for _, point := range m.preSelectedTree {
 		preStr += "{" + strconv.Itoa(point.x) + "," + strconv.Itoa(point.y) + "}"
 	}
+	searchBoxHeight := lipgloss.Height(m.searchView())
 
 	// m.debug = strconv.Itoa(m.viewport.YOffset)
 	// if m.copy {
@@ -359,7 +389,7 @@ func (m Model) debugView() string {
 	// 	"\n" + "point x, y: " + strconv.Itoa(m.subSelected.x) + " " + strconv.Itoa(m.subSelected.y) +
 	// 	"\n" + strconv.Itoa(len(m.subMsgs.ylen))
 	// 	"\n" + strconv.Itoa(count)
-	return "last: " + lastMode + " current: " + s + " " + m.debug + " " + "\n" +
+	return "last: " + lastMode + " current: " + s + "\n" +
 		// "PreSelectedTree.x:" + strconv.Itoa(m.preSelectedTree.x) + " PreSelectedTree.y:" + strconv.Itoa(m.preSelectedTree.y) + "\n" +
 		// "PreSelectedTree: " + preStr + "\n" +
 		"subSelected.x:" + strconv.Itoa(m.subSelected.x) + " subSelected.y:" + strconv.Itoa(m.subSelected.y) + "\n" +
@@ -367,7 +397,9 @@ func (m Model) debugView() string {
 		// "all ylen: " + strYlen + "\n" +
 		// m.curTree.Name + "\n" +
 		// strconv.Itoa(len(m.tabs)) + "\n" +
-		"Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height)
+		"Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height) + "\n" +
+		"searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" +
+		"Vertival Margin: " + m.debug
 }
 
 func (m Model) View() string {
@@ -375,48 +407,23 @@ func (m Model) View() string {
 		return "Initializing..."
 	}
 
-	var searchBox strings.Builder
-	var displayBox strings.Builder
-	var replaceLen int = 0
-	searchBox.WriteString(m.browserView()) // Browser box is needed
-	searchBox.WriteString("   ")
-	searchBox.WriteString(m.searchView())
-	searchBox.WriteString("\n")
-	// searchBox.WriteString(m.suggestionListView())
-	// searchBox.WriteString("\n")
+	header := m.headerView()
+	body := m.bodyView()
+	footer := m.footerView()
 
-	displayBox.WriteString(m.treeTabView())
-	displayBox.WriteString("\n")
-	displayBox.WriteString(m.viewportView())
-	displayBox.WriteString("\n")
-	displayBox.WriteString(m.paginatorView())
-	displayBox.WriteString("\n")
-	displayBox.WriteString(m.debugView())
-	displayBox.WriteString("\n")
-
-	suggestionListBytes := []byte(m.suggestionListView())
-	// delPopWinBytes := []byte(m.delPopWinView())
-	displayBytes := []byte(displayBox.String())
-	if len(suggestionListBytes) > len(displayBytes) {
-		replaceLen = len(displayBytes)
-	} else {
-		replaceLen = len(suggestionListBytes)
-	}
-	displayBytes = append(suggestionListBytes[:replaceLen], displayBytes[replaceLen:]...)
-
-	if m.helpToggle == true {
-		count++
-		helpBytes := []byte(m.helpView())
-		if len(helpBytes) > len(displayBytes) {
-			replaceLen = len(displayBytes)
-		} else {
-			replaceLen = len(helpBytes)
-		}
-		displayBytes = append(helpBytes[:replaceLen], displayBytes[replaceLen:]...)
-	}
+	// if m.helpToggle == true {
+	// 	count++
+	// 	helpBytes := []byte(m.helpView())
+	// 	if len(helpBytes) > len(displayBytes) {
+	// 		replaceLen = len(displayBytes)
+	// 	} else {
+	// 		replaceLen = len(helpBytes)
+	// 	}
+	// 	displayBytes = append(helpBytes[:replaceLen], displayBytes[replaceLen:]...)
+	// }
 
 	// s := searchBox.String() + "\n" + string(displayBytes) + "\n" + m.confirmView() + "\n" + m.helpView()
-	s := lipgloss.JoinVertical(0, searchBox.String(), string(displayBytes), m.confirmView(), m.helpView())
+	s := lipgloss.JoinVertical(0, header, body, footer)
 
 	// return lipgloss.PlaceHorizontal(100, 0.5, s)
 	return s

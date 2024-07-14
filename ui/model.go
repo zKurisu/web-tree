@@ -168,7 +168,13 @@ var (
 	suggestionSelectedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#e78"))
 	adSearchSubmitStyle     = lipgloss.NewStyle().Background(lipgloss.Color("#e78"))
 
-	viewBoxStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
+	// viewBoxStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder())
+	viewBoxStyle = lipgloss.NewStyle().
+			BorderStyle(lipgloss.RoundedBorder()).
+			BorderTop(true).
+			BorderBottom(true).
+			BorderLeft(true).
+			BorderRight(true)
 
 	// treeTabBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
 	// treeTabBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder())

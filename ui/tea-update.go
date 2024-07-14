@@ -1,12 +1,10 @@
 package ui
 
 import (
-	"github.com/charmbracelet/bubbles/key"
-	// "github.com/charmbracelet/bubbles/paginator"
 	"github.com/atotto/clipboard"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 
 	"strconv"
 	"strings"
@@ -134,6 +132,16 @@ func (m *Model) updateTextarea() {
 	// Set info of current selected node
 }
 
+func (m *Model) updateWindow() {
+	if m.ready {
+		verticalMarginHeight := m.getVerticalMarginHeight()
+
+		m.paginator.PerPage = m.winMsgs.Width/8 - 2
+		m.viewport.Width = m.winMsgs.Width - 2
+		m.viewport.Height = m.winMsgs.Height - verticalMarginHeight
+	}
+}
+
 func (m *Model) afterModeChange() {
 	switch m.mode {
 	case browser:
@@ -227,32 +235,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		// m.debug = "Width: " + strconv.Itoa(msg.Width) + "  " + "Height: " + strconv.Itoa(msg.Height)
-		searchBoxHeight := lipgloss.Height(m.searchView())
-		treeTabHeight := lipgloss.Height(m.treeTabView())
-		helpHeight := lipgloss.Height(m.helpView())
-		paginatorHeight := lipgloss.Height(m.paginatorView())
-		debugHeight := lipgloss.Height(m.debugView())
-		footerHeight := lipgloss.Height(m.footerView())
+		// Newline between components
+		verticalMarginHeight := m.getVerticalMarginHeight()
 
-		verticalMarginHeight := searchBoxHeight +
-			helpHeight + treeTabHeight + paginatorHeight +
-			debugHeight + footerHeight
 		m.winMsgs.Width = msg.Width
-		m.winMsgs.Height = msg.Height - verticalMarginHeight
+		m.winMsgs.Height = msg.Height
 
 		if !m.ready {
 			m.paginator = paginatorInit(msg.Width/8 - 2)
-			m.viewport = viewport.New(msg.Width-2, msg.Height-verticalMarginHeight-2-2-2)
+			m.viewport = viewport.New(msg.Width-2, msg.Height-verticalMarginHeight)
 			m.viewport.HighPerformanceRendering = false
 			m.viewport.KeyMap = viewport.KeyMap{}
 			m.viewport.SetContent(m.content)
-			m.browseInput.Width = msg.Width / 8
+			// m.browseInput.Width = msg.Width / 8
 			// m.viewport.YPosition = searchBoxHeight + treeTabHeight + 1
 			m.ready = true
 		} else {
 			m.paginator.PerPage = msg.Width/8 - 2
 			m.viewport.Width = msg.Width - 2
-			m.viewport.Height = msg.Height - verticalMarginHeight - 2 - 2 - 2
+			m.viewport.Height = msg.Height - verticalMarginHeight
 		}
 
 	case tea.KeyMsg:
@@ -843,7 +844,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					switch content := m.subSelected.content.(type) {
 					case *utils.Node:
 						index, _ := strconv.Atoi(answer)
-						m.debug = "Open link"
 						if index <= len(content.GetNodeLinks()) {
 							openLink(m.browser, content.GetNodeLinks()[index-1])
 							m.open = false
@@ -968,6 +968,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.updateContent()
 	m.updateSuggestionList()
 	m.updateTextarea()
+	m.updateWindow()
 	// m.updateConfirmInput()
 	cmds = append(cmds, m.updateUIComponents(msg)...)
 

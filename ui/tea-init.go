@@ -71,6 +71,7 @@ func browseInputInit() textinput.Model {
 	ti := textinput.New()
 	ti.KeyMap = textinput.KeyMap{}
 	ti.Placeholder = "Input browser command"
+	ti.SetValue(utils.CONF.GetBrowser()[0])
 	ti.SetSuggestions(browseSuggestionInit())
 	ti.ShowSuggestions = true
 	return ti

@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 )
@@ -88,6 +89,14 @@ func getLastWord(s string) string {
 	return ""
 }
 
+func intSum(list []int) int {
+	total := 0
+	for _, value := range list {
+		total += value
+	}
+	return total
+}
+
 // func commandParse(input string) (string, []string) {
 // 	elements := strings.Split(input, " ")
 // 	return elements[0], elements[1:]
@@ -120,6 +129,33 @@ func getIndex(slice []string, s string) int {
 		}
 	}
 	return 0
+}
+
+func (m *Model) getVerticalMarginHeight() int {
+	browseBoxHeight := lipgloss.Height(m.browserView())
+	searchBoxHeight := lipgloss.Height(m.searchView())
+	treeTabHeight := lipgloss.Height(m.treeTabView())
+	helpHeight := lipgloss.Height(m.helpView())
+	paginatorHeight := lipgloss.Height(m.paginatorView())
+	debugHeight := lipgloss.Height(m.debugView())
+	// debugHeight := 0
+	confirmHeight := lipgloss.Height(m.confirmView())
+
+	verticalMarginHeightComponents := []int{
+		browseBoxHeight, searchBoxHeight, treeTabHeight, helpHeight,
+		paginatorHeight, debugHeight, confirmHeight,
+	}
+
+	// Newline between components
+	verticalMarginHeight :=
+		intSum(verticalMarginHeightComponents) + len(verticalMarginHeightComponents) - 4 // 4: include header, body, footer
+
+	m.debug = strconv.Itoa(verticalMarginHeight)
+
+	if m.mode != confirm {
+		verticalMarginHeight = verticalMarginHeight - confirmHeight
+	}
+	return verticalMarginHeight
 }
 
 func openLink(browser string, link string) bool {
