@@ -58,9 +58,7 @@ Using tree path (web folder), links, alias, and labels to find a node:
 - `<Ctrl+k>` to move up
 - `Enter` to jump to specific node
 
-<video width="960" height="540" controls>
-  <source src="./.github/mp4/adsearch.mp4" type="video/mp4">
-</video>
+![](./.github/mp4/adsearch.mp4)
 
 ## Add
 Add new subtree (web folder) or node:
@@ -75,9 +73,7 @@ Add new subtree (web folder) or node:
 ## Browser
 Chose browser for opening a web link, default value is the first one setting in configuration file:
 
-<video width="960" height="540" controls>
-  <source src="./.github/mp4/browser.mp4" type="video/mp4">
-</video>
+![](./.github/mp4/browser.mp4)
 
 ## Display
 Navigate subtrees and nodes:
@@ -89,9 +85,7 @@ Navigate subtrees and nodes:
 - `ctrl+e` for editing node
 - `ctrl+t` for toggling display info
 
-<video width="960" height="540" controls>
-  <source src="./.github/mp4/display.mp4" type="video/mp4">
-</video>
+![](./.github/mp4/display.mp4)
 
 # Cmd
 > Open tui
