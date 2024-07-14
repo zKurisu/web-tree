@@ -228,7 +228,7 @@ func InitialModel() Model {
 		delete:     false,
 		copy:       false,
 		open:       false,
-		toggle:     false,
+		toggle:     true,
 		helpToggle: false,
 		root:       root,
 		curTree:    &root,
@@ -237,6 +237,7 @@ func InitialModel() Model {
 		confirm:    confirmInit(),
 
 		browser: utils.CONF.GetBrowser()[0],
+		debug:   "debug",
 	}
 }
 

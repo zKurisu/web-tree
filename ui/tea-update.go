@@ -226,7 +226,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.debug = "Width: " + strconv.Itoa(msg.Width) + "  " + "Height: " + strconv.Itoa(msg.Height)
+		// m.debug = "Width: " + strconv.Itoa(msg.Width) + "  " + "Height: " + strconv.Itoa(msg.Height)
 		searchBoxHeight := lipgloss.Height(m.searchView())
 		treeTabHeight := lipgloss.Height(m.treeTabView())
 		helpHeight := lipgloss.Height(m.helpView())
@@ -242,7 +242,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if !m.ready {
 			m.paginator = paginatorInit(msg.Width/8 - 2)
-			m.viewport = viewport.New(msg.Width-2, msg.Height-verticalMarginHeight-2*searchBoxHeight-2)
+			m.viewport = viewport.New(msg.Width-2, msg.Height-verticalMarginHeight-2-2-2)
 			m.viewport.HighPerformanceRendering = false
 			m.viewport.KeyMap = viewport.KeyMap{}
 			m.viewport.SetContent(m.content)
@@ -252,7 +252,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.paginator.PerPage = msg.Width/8 - 2
 			m.viewport.Width = msg.Width - 2
-			m.viewport.Height = msg.Height - verticalMarginHeight - 2*searchBoxHeight - 2
+			m.viewport.Height = msg.Height - verticalMarginHeight - 2 - 2 - 2
 		}
 
 	case tea.KeyMsg:
@@ -728,21 +728,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					root := utils.RootTree
 					treeName := m.addInput[0].Value()
 
-					if !(len(utils.SplitTreeLevel(treeName)) == 1 && utils.IsInList(root.GetAllSubtreeName(), treeName)) {
-						links := strings.Split(m.addInput[1].Value(), " ")
-						alias := strings.Split(m.addInput[2].Value(), " ")
-						desc := strings.Split(m.addInput[3].Value(), ",")
-						label := strings.Split(m.addInput[4].Value(), " ")
-						icon := m.addInput[5].Value()
+					links := strings.Split(m.addInput[1].Value(), " ")
+					alias := strings.Split(m.addInput[2].Value(), " ")
+					desc := strings.Split(m.addInput[3].Value(), ",")
+					label := strings.Split(m.addInput[4].Value(), " ")
+					icon := m.addInput[5].Value()
 
-						root.DeepAddNewSubTree(treeName)
-						t := root.DeepFindSubTree(treeName)
-						n, _ := utils.NewNode(links, alias, desc, icon, label, "None")
-						if len(links) != 0 && links[0] != "" {
-							t.AppendNode(n)
-						}
-						utils.WriteAll()
+					root.DeepAddNewSubTree(treeName)
+					t := root.DeepFindSubTree(treeName)
+					n, _ := utils.NewNode(links, alias, desc, icon, label, "None")
+					if len(links) != 0 && links[0] != "" {
+						t.AppendNode(n)
 					}
+					utils.WriteAll()
 
 					if len(utils.SplitTreeLevel(treeName)) == 1 {
 						utils.RootTree = utils.Tree{
@@ -836,7 +834,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					switch content := m.subSelected.content.(type) {
 					case *utils.Node:
 						index, _ := strconv.Atoi(answer)
-						if index < len(content.GetNodeLinks()) {
+						if index <= len(content.GetNodeLinks()) {
 							clipboard.WriteAll(content.GetNodeLinks()[index-1])
 							m.copy = false
 						}
@@ -845,7 +843,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					switch content := m.subSelected.content.(type) {
 					case *utils.Node:
 						index, _ := strconv.Atoi(answer)
-						if index < len(content.GetNodeLinks()) {
+						m.debug = "Open link"
+						if index <= len(content.GetNodeLinks()) {
 							openLink(m.browser, content.GetNodeLinks()[index-1])
 							m.open = false
 						}

@@ -341,7 +341,7 @@ func (m Model) debugView() string {
 		preStr += "{" + strconv.Itoa(point.x) + "," + strconv.Itoa(point.y) + "}"
 	}
 
-	m.debug = strconv.Itoa(m.viewport.YOffset)
+	// m.debug = strconv.Itoa(m.viewport.YOffset)
 	// if m.copy {
 	// 	m.debug = "copy.."
 	// }
@@ -391,8 +391,8 @@ func (m Model) View() string {
 	displayBox.WriteString("\n")
 	displayBox.WriteString(m.paginatorView())
 	displayBox.WriteString("\n")
-	// displayBox.WriteString(m.debugView())
-	// displayBox.WriteString("\n")
+	displayBox.WriteString(m.debugView())
+	displayBox.WriteString("\n")
 
 	suggestionListBytes := []byte(m.suggestionListView())
 	// delPopWinBytes := []byte(m.delPopWinView())

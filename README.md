@@ -1,171 +1,106 @@
-# Desc
+# Description
 Using bubbletea and libgloss to write a web favorates handler for command line usage.
 
-Multiple ways to sort: label, folder
-Concept image:
+![](./.github/img/basic-ui.png)
 
+It's still in the development stage, and I'm dealing with problems with the UI components. Code comments and documentation will be written soon. Bugs are being fixed along the way!
 # Targets
 
     Have a nice UI, customization of UI components'position, maybe drag with mouse and store the new position parameter
-    Add/delete web
-    Description for each web
-    Multiple name alias for each web page
+    Add/delete web ✅
+    Could add description for each web ✅
+    Multiple name alias for each web page ✅
     Scroll bar
-    Open a web page through target web browser
+    Open a web page through target web browser ✅
     Icon setting for each web page
-    Fuzzy finder
+    Fuzzy finder ✅
     Classification support
-    Vim mode for moving around and search space, maybe customization for keybindings
-    YMAL configuration file
+    Vim mode for moving around and search space ✅
+    Maybe customization for keybindings
+    YMAL configuration file ✅
     Custom sort way: folder, label
-    Flip between description and link
-    Copy the link to clipboard
-    Edit link and description in real time
-    Basic help info on the top, could be hidden
+    Flip between description and link ✅
+    Copy the link to clipboard ✅
+    Edit link and description in real time ✅
+    Basic help info on the top, could be hidden ✅
     Check whether the keybindings is conflict
-    Configuration file should be placed at "~/.config/web-tree/"
-    Every tree have a storage file? data 目录, 每创建一个 tree, 就添加一个文件
+    Configuration file should be placed at "~/.config/web-tree/" ✅
+    Every tree have a storage file? data 目录, 每创建一个 tree, 就添加一个文件 ✅
     Check configuration
-    Move a node to another position
-    Browser list show
-    Root tree 的设计
-    如何不继承给某一个
-    通过逗号分隔成列表, 斜杠分隔成层级, 检查值的合法性, 如 "," 等不出现在 alias 中(在 Run 之前运行检查程序)
-    检查是否为 url
-    全局查找一个 node
+    Move a node to another position ✅
+    Browser list show ✅
+    Sort method, tree? node? label and so on.
 
-## UI
-Possible TUI for it:
-- text input
-- help
-- key
-- autocomplete
-- composable-views
-- http
-- list-fancy
-- progress-animated
-- spinners
-- table
-- tabs
-- tui-daemon-combo
+# Mode
+Press specific keys to enter different modes:
+    
+|Mode|Key|Desc
+-|-
+Display|ESC|From any mode
+Search|Ctrl+n|From any mode.
+AdSearch|Ctrl+u|From any mode
+Browser|Ctrl+o|From any mode
+Add|Ctrl+a|From display mode
+Edit|Ctrl+e|From display mode
 
-如何获取终端长度和宽度
+## Search
+ Fuzzy find a web node:
+- `<Tab>` for autocompletion
+- `<Ctrl+j>` to move down
+- `<Ctrl+k>` to move up
+- `Enter` to jump to specific node
 
-如何绘制出 box, 或者是每个 part 分别的 box
+![](./.github/gif/fuzzy.gif)
+## Advanced Search
+Using tree path (web folder), links, alias, and labels to find a node:
+- `<Tab>` for autocompletion
+- `<Ctrl+j>` to move down
+- `<Ctrl+k>` to move up
+- `Enter` to jump to specific node
 
-先完成 search 部分还是 display 部分
+<video width="960" height="540" controls>
+  <source src="./.github/mp4/adsearch.mp4" type="video/mp4">
+</video>
 
-测试函数声明是否可以改变.
+## Add
+Add new subtree (web folder) or node:
+- `<Ctrl+j>` to move down
+- `<Ctrl+k>` to move up
+- `Enter` to jump to specific node
 
-1. Command line args
-2. Draw the outer box
-3. help, key menu
-4. text input and autocomplete for search space
-5. Add function for http testing
+<video width="960" height="540" controls>
+  <source src="./.github/mp4/add.mp4" type="video/mp4">
+</video>
 
-Alias could not be duplicated
+## Browser
+Chose browser for opening a web link, default value is the first one setting in configuration file:
 
-测试程序:
-- textinput/textinputs 以及 autocomplete
+<video width="960" height="540" controls>
+  <source src="./.github/mp4/browser.mp4" type="video/mp4">
+</video>
 
-可以高级检索, 此时用 textinputs
+## Display
+Navigate subtrees and nodes:
+- `h` for left
+- `l` for right
+- `k` for up
+- `j` for down
+- `ctrl+x` for opening link
+- `ctrl+e` for editing node
+- `ctrl+t` for toggling display info
 
-添加 strings.Builder 来创建 View() 需要的字符串
+<video width="960" height="540" controls>
+  <source src="./.github/mp4/display.mp4" type="video/mp4">
+</video>
 
-完成测试的组件:
-- textinput -Fi-
-- textinputs -Fi-
-- key -Fi-
-- box -Fi-
-
-描述性测试:
-- 显示 help 信息
-- 设置 box 的 padding -Fi-
-
-### Help
-
-### Status
-显示 sort 方式, tree, node, label 数量等.
-
-### Search
-
-### Display
-
-## Cmd
-Sub-command and function.
-
-Without the sub-command, open the node with browser.
-
-决定是否 persistent 以及类型, 长命令, 短命令, 默认值, help 信息. 哪些需要捆绑使用
-
-根据 RootTree 这个变量来添加文件. 在 Add, Delete 这些操作之后, 需要更新 RootTree 等变量的信息.
-
-默认创建一个 root.yaml 文件(临时文件), 包含其他 tree 信息, 通过读取这个文件来更新 RootTree 变量. 循环对 Root 之下的每一个 Tree 做写入操作以 Update. -Fi-
-
-判断一个 Tree 是否改变. 比较内存中的大小是否可行. -Fi-
-
-手动保存, 或退出时一并写入.
-
-普通树名不能为 root -Fi-
-
-添加 sub tree 可接收 list, map 等.
-
-在 NewTree 和 NewNode 时对参数进行检验 -Fi-
-
-判断一个 alias 以及 link 是否已经存在
-
-去除重复的 hint
-
-去除空字符串
-
-edit 的问题, tree name 被修改导致找不到原文件
-
-为每一个函数添加错误处理.
-
-### 主要信息
-root 的 flag 有:
-- `--version`, `-v`, "0.01"
-- `--help`, `-h`, 暂时不用管
-- `--tree`, `-t`, persistent, string, "root", "target web tree"
-- `--node`, `-n`, persistent, bool, false, "target node"
-- `--alias`, `-a`, persistent, string, "", "Alias of target node"
-- `--link`, `-l`, persistent, string, "", "Urls of target node"
-- `--browser`, `-b`, local, string, ""(从 conf 获取), "Open url with target browser"
-
-root 的 sub-command 有:
-- add
-- del
-- edit
-- move
-- list
-- show
-
-add 除继承以外的 flag:
-- `--desc`, `-d`, local, string, "", "Descriptions of target node"
-- `--label`, `none`, local, string, "", "Labels of target node"
-
-del 无额外 flag.
-
-edit 除继承以外的 flag:
-- `--tname`, `-N`, local, string, "", "New tree name"
-- `--nlink`, `-L`, local, string, "", "New links for target node"
-- `--nalias`, `-A`, local, string, "", "New alias for target node"
-- `--ndesc`, `-D`, local, string, "", "New descriptions for target node"
-- `--nlabel`, `none`, local, string, "", "New labels for target node"
-
-move 无额外 flag.
-
-list 有 subcommand.
-
-show 无额外 flag.
-### root
-
+# Cmd
 > Open tui
 
 ```sh
 webtree
 ```
 
+### root
 > Open with browser in conf file by alias
 
 ```sh
@@ -301,21 +236,6 @@ webtree show --tree=<name> --node --alias=<alias>
 ```sh
 webtree show --label=<name>
 ```
-# Usage
-## Move around
 
-    `?`: Help manual
-    `<Tab>`: Moving between several space
-    `j`: Move down
-    `k`: Move up
-    `h`: Move left
-    `l`: Move right
-    `o`: Open in web browser
-    `a`: Add new web
-    `d`: Delete a selected web
-    `t`: Toggle from description and web link
-
-## Work space
-
-    Search, on the top of the UI
-    Web tree, 
+# Installation
+You should not install this version, it's still hard to use, I will implement these problems in the following days.
