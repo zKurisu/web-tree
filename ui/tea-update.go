@@ -785,11 +785,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							}
 
 							start, _ := m.paginator.GetSliceBounds(len(m.tabs))
-							if m.tabSelected.index < m.subMsgs.ylen[m.subSelected.y]-1 && m.tabSelected.index > 0 {
+							if m.tabSelected.index < m.subMsgs.ylen[m.subSelected.y]-1 && m.tabSelected.index >= 0 {
 								m.tabSelected.content = m.tabs[m.tabSelected.index]
 								m.tabs = utils.RootTree.GetAllSubtreeName()
 							}
-							if m.tabSelected.index == m.subMsgs.ylen[m.subSelected.y]-1 && m.tabSelected.index > 0 {
+							if m.tabSelected.index == m.subMsgs.ylen[m.subSelected.y]-1 && m.tabSelected.index >= 0 {
 								m.tabSelected.index--
 								m.tabSelected.content = m.tabs[m.tabSelected.index]
 								m.tabs = utils.RootTree.GetAllSubtreeName()

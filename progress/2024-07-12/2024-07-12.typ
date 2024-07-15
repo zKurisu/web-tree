@@ -5,7 +5,7 @@
 - help 的显示也有问题 ✅
 - node 横向显示重叠
 - add 的 input 无法一次清空输入 ✅
-- add 中, 同时添加新 tab 和 node 时不会添加 node
+- add 中, 同时添加新 tab 和 node 时不会添加 node ✅
 - 测试添加 Box 对 string height 的影响 ✅
 
 
