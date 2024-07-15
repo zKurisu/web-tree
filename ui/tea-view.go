@@ -49,7 +49,7 @@ func (m Model) searchView() string {
 	return s
 }
 
-func (m Model) suggestionListView() string {
+func (m *Model) suggestionListView() string {
 	var b strings.Builder
 	switch m.mode {
 	case browser:
@@ -104,7 +104,11 @@ func (m Model) suggestionListView() string {
 			b.WriteString(suggestion + "\n")
 		}
 	}
-	return b.String()
+	if removeSpace(b.String()) == "" {
+		return b.String()
+	} else {
+		return suggestionBoxStyle.Render(b.String())
+	}
 }
 
 func (m Model) allTreeView() string {
@@ -399,7 +403,7 @@ func (m Model) debugView() string {
 		// strconv.Itoa(len(m.tabs)) + "\n" +
 		"Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height) + "\n" +
 		"searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" +
-		"Vertival Margin: " + m.debug
+		"suggestion string: " + m.debug
 }
 
 func (m Model) View() string {

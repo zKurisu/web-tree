@@ -736,21 +736,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					icon := m.addInput[5].Value()
 
 					root.DeepAddNewSubTree(treeName)
-					t := root.DeepFindSubTree(treeName)
-					n, _ := utils.NewNode(links, alias, desc, icon, label, "None")
-					if len(links) != 0 && links[0] != "" {
-						t.AppendNode(n)
-					}
-					utils.WriteAll()
-
 					if len(utils.SplitTreeLevel(treeName)) == 1 {
+						utils.WriteAll()
 						utils.RootTree = utils.Tree{
 							Name:     "root",
 							SubTrees: utils.GetAllRootSubTree(),
 							Nodes:    []*utils.Node{},
 						}
-						m.tabs = utils.RootTree.GetAllSubtreeName()
-						m.paginator.SetTotalPages(len(utils.RootTree.GetAllSubtreeName()))
+						root = utils.RootTree
+						m.tabs = root.GetAllSubtreeName()
+						m.paginator.SetTotalPages(len(root.GetAllSubtreeName()))
 
 						oriPageNumber := getPageNumber(m.tabSelected.index)
 						m.tabSelected.index = getIndex(m.tabs, treeName)
@@ -759,8 +754,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						for i := 0; i < newPageNumber-oriPageNumber; i++ {
 							m.paginator.NextPage()
 						}
-
 					}
+
+					t := root.DeepFindSubTree(treeName)
+					n, _ := utils.NewNode(links, alias, desc, icon, label, "None")
+					if len(links) != 0 && links[0] != "" {
+						t.AppendNode(n)
+					}
+					utils.WriteAll()
+
 				}
 				m.addInpSelected.index = 0
 				m.lastMode = m.mode
@@ -864,6 +866,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case search:
 				m.searchInput.SetValue("")
 				m.searchInput.CursorStart()
+			case add:
+				i := m.addInpSelected.index
+				m.addInput[i].SetValue("")
+				m.addInput[i].CursorStart()
 			case advancedSearch:
 				i := m.adInpSelected.index
 				m.adSearchInput[i].SetValue("")

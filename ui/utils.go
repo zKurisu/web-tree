@@ -118,6 +118,12 @@ func removeEndSpace(s string) string {
 	return s
 }
 
+func removeSpace(s string) string {
+	pattern := `\s+`
+	re := regexp.MustCompile(pattern)
+	return re.ReplaceAllString(s, "")
+}
+
 func getPageNumber(index int) int {
 	return index/5 + 1
 }
@@ -148,7 +154,7 @@ func (m *Model) getVerticalMarginHeight() int {
 
 	// Newline between components
 	verticalMarginHeight :=
-		intSum(verticalMarginHeightComponents) + len(verticalMarginHeightComponents) - 4 // 4: include header, body, footer
+		intSum(verticalMarginHeightComponents) + len(verticalMarginHeightComponents) - 3 // 4: include header, body, footer
 
 	m.debug = strconv.Itoa(verticalMarginHeight)
 

@@ -159,8 +159,14 @@ var (
 	activeTabBorder   = tabBorderWithBottom("┘", " ", "└")
 	highlightColor    = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
 
-	searchBoxStyle          = lipgloss.NewStyle()
-	suggestionBoxStyle      = lipgloss.NewStyle()
+	searchBoxStyle = lipgloss.NewStyle()
+	// suggestionBoxStyle      = lipgloss.NewStyle()
+	suggestionBoxStyle = lipgloss.NewStyle().
+				BorderStyle(lipgloss.RoundedBorder()).
+				BorderTop(true).
+				BorderBottom(true).
+				BorderLeft(true).
+				BorderRight(true)
 	suggestionTreeStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#248"))
 	suggestionNodeStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#2c8"))
 	suggestionQuoteStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#4421f2"))
