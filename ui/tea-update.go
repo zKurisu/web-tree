@@ -115,17 +115,21 @@ func (m *Model) updateConfirmInput() {
 }
 
 func (m *Model) updateContent() {
-	m.tabSelected.content = m.tabs[m.tabSelected.index]
+	if len(m.tabs) > 0 {
+		m.tabSelected.content = m.tabs[m.tabSelected.index]
 
-	root := utils.RootTree
-	selectedContent, _ := m.tabSelected.content.(string)
-	t := root.FindSubTree(selectedContent)
-	m.subMsgs.ylen = []int{len(m.tabs)}
-	m.content = m.getTreeView(t, 1)
-	if m.subSelected.y == 0 {
-		m.subSelected.content = t
+		root := utils.RootTree
+		selectedContent, _ := m.tabSelected.content.(string)
+		t := root.FindSubTree(selectedContent)
+		m.subMsgs.ylen = []int{len(m.tabs)}
+		m.content = m.getTreeView(t, 1)
+		if m.subSelected.y == 0 {
+			m.subSelected.content = t
+		}
+		m.viewport.SetContent(m.content)
+	} else {
+		m.viewport.SetContent("")
 	}
-	m.viewport.SetContent(m.content)
 }
 
 func (m *Model) updateTextarea() {
