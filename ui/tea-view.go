@@ -380,12 +380,19 @@ func (m Model) debugView() string {
 	// 	m.debug = "copy.."
 	// }
 
-	//switch content := m.subSelected.content.(type) {
-	//case *utils.Tree:
-	//	m.debug = content.GetFatherName()
-	//case *utils.Node:
-	//	m.debug = "Node"
-	//}
+	// posiList := [][]int{}
+	// posiX, posiY := 0, 0
+	// treeName := ""
+	// switch content := m.subSelected.content.(type) {
+	// case *utils.Tree:
+	// 	posiX, posiY = m.root.DeepGetTreePosi(content.GetTreeName(), 0)
+	// 	posiList = m.root.GetTreePosiList(content.GetTreeName(), [][]int{})
+	// 	treeName = content.GetTreeName()
+	// }
+	// posiListView := ""
+	// for _, elem := range posiList {
+	// 	posiListView += "[" + strconv.Itoa(elem[0]) + " " + strconv.Itoa(elem[1]) + "] "
+	// }
 
 	// return s + " " + m.debug + "\n" + "start: " + strconv.Itoa(start) +
 	// 	"\n" + "end: " + strconv.Itoa(end) +
@@ -395,7 +402,10 @@ func (m Model) debugView() string {
 	// 	"\n" + strconv.Itoa(count)
 	return "last: " + lastMode + " current: " + s + "\n" +
 		// "PreSelectedTree.x:" + strconv.Itoa(m.preSelectedTree.x) + " PreSelectedTree.y:" + strconv.Itoa(m.preSelectedTree.y) + "\n" +
-		// "PreSelectedTree: " + preStr + "\n" +
+		"PreSelectedTree: " + preStr + "\n" +
+		// "posiX: " + strconv.Itoa(posiX) + "posiY: " + strconv.Itoa(posiY) + "\n" +
+		// "posiListView: " + posiListView + "\n" +
+		// "TreeName: " + treeName + "\n" +
 		"subSelected.x:" + strconv.Itoa(m.subSelected.x) + " subSelected.y:" + strconv.Itoa(m.subSelected.y) + "\n" +
 		// "ylen: " + strconv.Itoa(len(m.subMsgs.ylen)) + "\n" +
 		// "all ylen: " + strYlen + "\n" +

@@ -185,7 +185,7 @@ var (
 	// treeTabBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
 	// treeTabBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder())
 	treeTabBoxStyle         = lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(highlightColor).Padding(0, 1)
-	treeTabBoxSelectedStyle = treeTabBoxStyle.Copy().Border(activeTabBorder, true)
+	treeTabBoxSelectedStyle = treeTabBoxStyle.Copy().Border(activeTabBorder, true).Background(lipgloss.Color("#248"))
 
 	treeBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
 	treeBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder()).Background(lipgloss.Color("#476"))

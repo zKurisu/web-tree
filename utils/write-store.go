@@ -208,5 +208,9 @@ func (tree *Tree) DelNode(hints []string) {
 }
 
 func (tree *Tree) subTreeNameWrap(name string) string {
-	return tree.Name + "/" + name
+	if tree.GetTreeName() != "root" {
+		return tree.GetTreeName() + "/" + name
+	} else {
+		return name
+	}
 }

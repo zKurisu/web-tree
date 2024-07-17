@@ -108,3 +108,51 @@ func (tree Tree) DeepGetAllNodeWithPath() ([]*Node, []string) {
 
 	return nodeList, pathList
 }
+
+func (t Tree) DeepGetTreePosi(tName string, initY int) (int, int) {
+	x := 0
+	y := initY
+
+	levels := SplitTreeLevel(tName)
+	targetTreeName := t.subTreeNameWrap(levels[0])
+	for i, subTree := range t.GetAllSubtree() {
+		if subTree.GetTreeName() == targetTreeName {
+			if len(levels) > 1 {
+				y += 1
+				return subTree.DeepGetTreePosi(strings.Join(levels[1:], "/"), y)
+			} else {
+				x = i
+			}
+		}
+	}
+
+	return x, y
+}
+
+func (t Tree) GetSubTreePosi(tName string) (int, int) {
+	x := 0
+	y := len(SplitTreeLevel(tName)) - 1
+	for i, subTree := range t.GetAllSubtree() {
+		if subTree.GetTreeName() == tName {
+			x = i
+		}
+	}
+	return x, y
+}
+
+func (t Tree) GetTreePosiList(tName string, posiList [][]int, treeList []*Tree) ([][]int, []*Tree) {
+	levels := SplitTreeLevel(tName)
+	targetTreeName := t.subTreeNameWrap(levels[0])
+
+	for _, subTree := range t.GetAllSubtree() {
+		if subTree.GetTreeName() == targetTreeName {
+			x, y := t.GetSubTreePosi(targetTreeName)
+			posiList = append(posiList, []int{x, y})
+			treeList = append(treeList, subTree)
+			if len(levels) > 1 {
+				return subTree.GetTreePosiList(strings.Join(levels[1:], "/"), posiList, treeList)
+			}
+		}
+	}
+	return posiList, treeList
+}

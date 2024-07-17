@@ -171,12 +171,6 @@ func (m *Model) afterModeChange() {
 		m.addInput[0].Focus()
 	case display:
 		sequence(m.blurSearch, m.blurAdsearch, m.blurAddInput, m.blurTextarea, m.blurConfirm, m.blurBrowse)
-
-		m.searchInput.ShowSuggestions = false
-		m.searchInput.Blur()
-		for i := range m.adSearchInput {
-			m.adSearchInput[i].ShowSuggestions = false
-		}
 	case edit:
 		var b strings.Builder
 		switch content := m.subSelected.content.(type) {
@@ -669,10 +663,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.sugSelected.content = getTreeMsg(v)
 					}
 
+					nodePath := ""
 					switch content := m.sugSelected.content.(type) {
 					case nodeMsg:
+						nodePath = content.path
 						hint := append(content.link, content.alias...)
-						m.subMsgs.searchedContent = utils.RootTree.DeepFindSubTree(content.path).FindNode(hint)
+						m.subMsgs.searchedContent = utils.RootTree.DeepFindSubTree(nodePath).FindNode(hint)
 						tabTarget = strings.Split(content.path, "/")[0]
 					case treeMsg:
 						tabTarget = strings.Split(content.path, "/")[0]
@@ -683,7 +679,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.tabSelected.index = i
 						}
 					}
-					// m.mode = display
+					preTreePosiList, preTreeList := m.root.GetTreePosiList(nodePath, [][]int{}, []*utils.Tree{})
+					m.preSelectedTree = []point{}
+					for i, posi := range preTreePosiList {
+						m.preSelectedTree = append(m.preSelectedTree, point{posi[0], posi[1], preTreeList[i]})
+					}
+					m.mode = display
+					m.afterModeChange()
 				}
 			case advancedSearch:
 				i := m.adInpSelected.index
@@ -715,6 +717,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					t := utils.RootTree.DeepFindSubTree(treeName)
 					if t != nil {
 						m.subMsgs.searchedContent = t.FindNode(hints)
+					}
+
+					preTreePosiList, preTreeList := m.root.GetTreePosiList(treeName, [][]int{}, []*utils.Tree{})
+					m.preSelectedTree = []point{}
+					for i, posi := range preTreePosiList {
+						m.preSelectedTree = append(m.preSelectedTree, point{posi[0], posi[1], preTreeList[i]})
 					}
 					m.lastMode = m.mode
 					m.mode = display
