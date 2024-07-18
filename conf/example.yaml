@@ -1,4 +1,8 @@
 main:
+  browser: 
+    - chromium
+    - edge
+    - firefox
   sort: "label"
   help:
     hidden: false
@@ -9,7 +13,7 @@ search:
 
 tab:
   keybinding: "<Tab>"
-  style:
+  style: "None"
 
 tree:
   keybinding:

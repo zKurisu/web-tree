@@ -14,6 +14,35 @@ var TREE_TEMPELATE = `name:  %
 tree: []
 nodes: []
 `
+var CONFIG_TEMPLATE = `main:
+  browser: 
+    - chromium
+    - edge
+    - firefox
+  sort: "label"
+  help:
+    hidden: false
+
+search:
+  keybinding: "<C-s>"
+  style: "None"
+
+tab:
+  keybinding: "<Tab>"
+  style: "None"
+
+tree:
+  keybinding:
+    UP:     "k"
+    DOWN:   "j"
+    LEFT:   "h"
+    RIGHT:  "l"
+    OPEN:   "o"
+    ADD:    "a"
+    DELETE: "d"
+    EDIT:   "e"
+  style: "None"
+`
 
 func GetConfigName() string {
 	return CONFIG_FILE
@@ -37,4 +66,8 @@ func GetConfigPath() string {
 
 func GetTreeTemp() string {
 	return TREE_TEMPELATE
+}
+
+func GetConfigTemplate() string {
+	return CONFIG_TEMPLATE
 }

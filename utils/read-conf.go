@@ -46,11 +46,43 @@ type Conf struct {
 	} `yaml:"tree"`
 }
 
+func IsConfExist() bool {
+	// ...
+	_, err := os.Stat(CONFIG_PATH)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func InitConf() {
+	// ...
+	configDir := conf.GetConfigDir()
+	configInitContent := conf.GetConfigTemplate()
+
+	_, err := os.Stat(configDir)
+	if err != nil {
+		os.Mkdir(configDir, 0755)
+		log.Println("Create dir: " + configDir)
+	}
+
+	f, err := os.OpenFile(CONFIG_PATH, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	if _, err := f.WriteString(configInitContent); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Create config file: " + CONFIG_PATH + " ...ok")
+	log.Println("Run [web-tree] again to open TUI!")
+}
+
 func GetConf() Conf {
 	yamlContent, err := os.ReadFile(CONFIG_PATH)
 	if err != nil {
-		fmt.Println("When read yaml file:")
-		log.Fatal(err)
+		yamlContent = []byte(conf.GetConfigTemplate())
 	}
 
 	var c Conf
