@@ -7,7 +7,7 @@ import (
 	"web-tree/utils"
 )
 
-var count = 0
+var suggesCount, viewportCount = 0, 0
 
 func (m Model) browserView() string {
 	var s string
@@ -104,11 +104,12 @@ func (m *Model) suggestionListView() string {
 			b.WriteString(suggestion + "\n")
 		}
 	}
-	if removeSpace(b.String()) == "" {
-		return b.String()
-	} else {
-		return suggestionBoxStyle.Render(b.String())
-	}
+	//if removeSpace(b.String()) == "" {
+	//	return b.String()
+	//} else {
+	//	return suggestionBoxStyle.Render(b.String())
+	//}
+	return b.String()
 }
 
 func (m Model) allTreeView() string {
@@ -294,32 +295,35 @@ func (m Model) headerView() string {
 }
 
 func (m Model) bodyView() string {
-	var displayBox strings.Builder
-	var replaceLen int = 0
+	var bodyBox strings.Builder
 
-	displayBox.WriteString(m.treeTabView())
-	displayBox.WriteString("\n")
-	displayBox.WriteString(m.viewportView())
-	displayBox.WriteString("\n")
-	displayBox.WriteString(m.paginatorView())
-	displayBox.WriteString("\n")
-	displayBox.WriteString(m.debugView())
-	displayBox.WriteString("\n")
-
-	suggestionListBytes := []byte(m.suggestionListView())
-	// delPopWinBytes := []byte(m.delPopWinView())
-	displayBytes := []byte(displayBox.String())
-	if len(suggestionListBytes) > len(displayBytes) {
-		replaceLen = len(displayBytes)
-	} else {
-		replaceLen = len(suggestionListBytes)
+	suggestionString := m.suggestionListView()
+	if len(suggestionString) != 0 {
+		m.viewport.SetContent(suggestionString)
 	}
-	displayBytes = append(suggestionListBytes[:replaceLen], displayBytes[replaceLen:]...)
-	return string(displayBytes)
+	bodyBox.WriteString(m.treeTabView())
+	bodyBox.WriteString("\n")
+	bodyBox.WriteString(m.viewportView())
+
+	// delPopWinBytes := []byte(m.delPopWinView())
+	// displayBytes := []byte(displayBox.String())
+	// suggesCount = len(suggestionListBytes)
+	// viewportCount = len(displayBytes)
+	// if len(suggestionListBytes) > len(displayBytes) {
+	// 	replaceLen = len(displayBytes)
+	// } else {
+	// 	replaceLen = len(suggestionListBytes)
+	// }
+	// displayBytes = append(suggestionListBytes[:replaceLen], displayBytes[replaceLen:]...)
+	return bodyBox.String()
 }
 
 func (m Model) footerView() string {
 	var footerBox strings.Builder
+	footerBox.WriteString(m.paginatorView())
+	footerBox.WriteString("\n")
+	footerBox.WriteString(m.debugView())
+	footerBox.WriteString("\n")
 	footerBox.WriteString(m.confirmView())
 	footerBox.WriteString("\n")
 	footerBox.WriteString(m.helpView())
@@ -413,7 +417,8 @@ func (m Model) debugView() string {
 		// strconv.Itoa(len(m.tabs)) + "\n" +
 		"Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height) + "\n" +
 		"searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" +
-		"suggestion string: " + m.debug
+		"suggestion string: " + m.debug + "\n" +
+		"sugCount: " + strconv.Itoa(suggesCount) + " BodyCount: " + strconv.Itoa(viewportCount)
 }
 
 func (m Model) View() string {
