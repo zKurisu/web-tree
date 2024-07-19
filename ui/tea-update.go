@@ -141,6 +141,7 @@ func (m *Model) updateWindow() {
 		verticalMarginHeight := m.getVerticalMarginHeight()
 
 		m.paginator.PerPage = m.winMsgs.Width/8 - 2
+		m.paginator.SetTotalPages(len(m.root.GetAllSubtreeName()))
 		m.viewport.Width = m.winMsgs.Width - 2
 		m.viewport.Height = m.winMsgs.Height - verticalMarginHeight
 	}

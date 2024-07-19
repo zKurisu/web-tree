@@ -8,3 +8,4 @@
     - 再找 hello.Subtree 中匹配到 world 的 position
     - 再找 world.Subtree 中匹配到 lala 的 position, 最后一层不需要 x=0, y++
     - 递归查找 levels 字符串数组, 递归结束条件是 `len(levels) == 0`
+- 可以考虑, 为每一个 node 添加 default browser 的成员

@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"web-tree/ui"
+	"web-tree/utils"
 )
 
 var rootCmd = &cobra.Command{
@@ -13,9 +14,13 @@ var rootCmd = &cobra.Command{
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Open the TUI
-		p := tea.NewProgram(ui.InitialModel(), tea.WithAltScreen())
-		if _, err := p.Run(); err != nil {
-			log.Fatal(err)
+		if utils.IsConfExist() {
+			p := tea.NewProgram(ui.InitialModel(), tea.WithAltScreen())
+			if _, err := p.Run(); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			utils.InitConf()
 		}
 	},
 }
