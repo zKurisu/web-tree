@@ -3,12 +3,14 @@ package ui
 import (
 	"github.com/charmbracelet/lipgloss"
 	"log"
+	"math"
 	"os/exec"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"syscall"
+	"web-tree/utils"
 )
 
 func Fuzzy(src string, targets []string) []string {
@@ -182,6 +184,28 @@ func (m Model) getYPerPage() int {
 	return yPerPage
 }
 
+func (m Model) getCurDepth() int {
+	depth := 0
+	switch content := m.subSelected.content.(type) {
+	case *utils.Node:
+		depth = m.subSelected.y
+	case *utils.Tree:
+		depth = m.subSelected.y + content.GetTreeDepth()
+	}
+	return depth
+}
+
+func (m Model) isLineMove() bool {
+	depth := m.getCurDepth()
+	yPerPage := m.getYPerPage()
+	curY := m.subSelected.y
+
+	if curY > depth-yPerPage && curY < depth {
+		return true
+	}
+	return false
+}
+
 func (m Model) isPageUp() bool {
 	yPerPage := m.getYPerPage()
 	curY := m.subSelected.y
@@ -199,6 +223,35 @@ func (m Model) isPageDown() bool {
 		return true
 	}
 	return false
+}
+
+func (m Model) getTotalXInLine() int {
+	t := m.curTree
+	return len(t.GetNodes()) + len(t.GetAllSubtreeName())
+}
+
+func (m Model) getCurLineWidth() int {
+	return m.curLineWidth
+}
+
+func (m Model) getAveReducedWidth() int {
+	width := 0.0
+	curLineWidth := m.getCurLineWidth()
+	totalXInLine := m.getTotalXInLine()
+	if totalXInLine > 0 {
+		if m.subSelected.y == 0 || totalXInLine == 1 {
+			// no selected one
+			width = float64(curLineWidth-m.viewport.Width) / float64(totalXInLine)
+		} else {
+			// except selected one
+			width = float64(curLineWidth-m.viewport.Width) / float64(totalXInLine-1)
+		}
+	}
+
+	if width > 0 {
+		return int(math.Ceil(width))
+	}
+	return 0
 }
 
 func (m *Model) blurSearch() {

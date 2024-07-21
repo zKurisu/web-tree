@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 
 	"strconv"
 	"strings"
@@ -296,13 +297,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if len(m.preSelectedTree) > 0 {
 						m.subSelected = m.preSelectedTree[len(m.preSelectedTree)-1]
 						m.preSelectedTree = m.preSelectedTree[:len(m.preSelectedTree)-1]
+						boxHeight := lipgloss.Height(nodeBoxStyle.Render("s"))
 
-						if m.isPageUp() {
+						if m.isLineMove() {
+							m.viewport.LineUp(boxHeight)
+						} else if m.isPageUp() {
 							m.viewport.ViewUp()
 						}
-						// if m.viewport.YOffset-m.subSelected.y > 0 {
-						// 	m.viewport.YOffset -= 3
-						// }
 					}
 				}
 			}
@@ -349,12 +350,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.subSelected.x = 0
 						m.subSelected.y++
 
-						if m.isPageDown() {
+						boxHeight := lipgloss.Height(nodeBoxStyle.Render("s"))
+						if m.isLineMove() {
+							m.viewport.LineDown(boxHeight)
+						} else if m.isPageDown() {
 							m.viewport.ViewDown()
 						}
-						// if m.subSelected.y-m.viewport.YOffset > 1 {
-						// 	m.viewport.YOffset += 3
-						// }
 					}
 				}
 			}

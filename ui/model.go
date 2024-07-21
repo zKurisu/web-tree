@@ -51,7 +51,8 @@ type Model struct {
 	mode     Mode
 	lastMode Mode
 
-	confirm Confirm
+	confirm      Confirm
+	curLineWidth int
 
 	browser string
 	debug   string

@@ -205,7 +205,6 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 					rendered = append(rendered, nodeBoxSelected.Render(m.getNodeView(node)))
 				}
 				m.detail = false
-
 			} else {
 				rendered = append(rendered, nodeBoxStyle.Render(m.getNodeView(node)))
 			}
@@ -214,7 +213,12 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 	}
 
 	m.subMsgs.ylen = append(m.subMsgs.ylen, x)
-	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, rendered...))
+	renderedLine := lipgloss.JoinHorizontal(lipgloss.Top, rendered...)
+	if m.subSelected.y == y {
+		m.curLineWidth = lipgloss.Width(renderedLine)
+	}
+
+	b.WriteString(renderedLine)
 	b.WriteString("\n")
 
 	if len(t.GetAllSubtree()) > 0 && nodeSelected == 0 {
@@ -227,18 +231,28 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 }
 
 func (m Model) getRenderedTreeName(t *utils.Tree) string {
-	return treeBoxStyle.Render(t.GetTreeBaseName())
+	s := t.GetTreeBaseName()
+	// aveReducedWidth := m.getAveReducedWidth()
+	// s = s[:len(s)-aveReducedWidth]
+	return treeBoxStyle.Render(s)
 }
 
 func (m Model) getNodeView(n *utils.Node) string {
 	s := ""
+	// aveReducedWidth := m.getAveReducedWidth()
 	switch {
 	case m.detail:
-		s = s + m.expandNodeView(n)
+		s = m.expandNodeView(n)
 	case m.toggle:
-		s = s + aliasStyle.Render(n.Alias[0])
+		hint := n.Alias[0]
+		s = aliasStyle.Render(hint)
+		// s = aliasStyle.Render(hint[:len(hint)-aveReducedWidth])
+		// s = s[:len(s)-aveReducedWidth]
 	default:
-		s = s + linkStyle.Render(n.Link[0])
+		hint := n.Link[0]
+		s = linkStyle.Render(hint)
+		// s = linkStyle.Render(hint[:len(hint)-aveReducedWidth])
+		// s = s[:len(s)-aveReducedWidth]
 	}
 
 	return s
@@ -396,6 +410,7 @@ func (m Model) debugView() string {
 		preStr += "{" + strconv.Itoa(point.x) + "," + strconv.Itoa(point.y) + "}"
 	}
 	searchBoxHeight := lipgloss.Height(m.searchView())
+	totalReduce := 0
 
 	if m.ready {
 		if m.isPageDown() {
@@ -403,6 +418,7 @@ func (m Model) debugView() string {
 		} else {
 			m.debug = "wait"
 		}
+		totalReduce = m.getAveReducedWidth()
 	}
 
 	// m.debug = strconv.Itoa(m.viewport.YOffset)
@@ -443,7 +459,8 @@ func (m Model) debugView() string {
 		// strconv.Itoa(len(m.tabs)) + "\n" +
 		"Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height) + "\n" +
 		"searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" + strconv.Itoa(m.getYPerPage()) + "\n" +
-		m.debug
+		"totalX: " + strconv.Itoa(m.getTotalXInLine()) + " " + "totalW: " + strconv.Itoa(m.getCurLineWidth()) + "\n" +
+		"totalReduce: " + strconv.Itoa(totalReduce)
 	// "suggestion string: " + m.debug + "\n" +
 	// "sugCount: " + strconv.Itoa(suggesCount) + " BodyCount: " + strconv.Itoa(viewportCount)
 }
