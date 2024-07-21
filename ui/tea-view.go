@@ -274,8 +274,26 @@ func (m Model) confirmView() string {
 }
 
 func (m Model) viewportView() string {
-	return viewBoxStyle.Render(m.viewport.View())
+	return viewBoxStyle.Render(m.viewport.View() + "\n" + m.indexView())
 	// return m.viewport.View()
+}
+
+func (m Model) indexView() string {
+	index := 0
+	depth := 0
+	switch content := m.subSelected.content.(type) {
+	case *utils.Node:
+		index = m.subSelected.y
+		depth = index
+	case *utils.Tree:
+		index = m.subSelected.y
+		depth = index + content.GetTreeDepth()
+	}
+
+	indexStr := strconv.Itoa(index) + "/" + strconv.Itoa(depth)
+	startX := m.viewport.Width - len(indexStr)
+
+	return strings.Repeat(" ", startX) + indexStr
 }
 
 func (m Model) singleTreeView() string {
@@ -416,9 +434,9 @@ func (m Model) debugView() string {
 		// m.curTree.Name + "\n" +
 		// strconv.Itoa(len(m.tabs)) + "\n" +
 		"Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height) + "\n" +
-		"searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" +
-		"suggestion string: " + m.debug + "\n" +
-		"sugCount: " + strconv.Itoa(suggesCount) + " BodyCount: " + strconv.Itoa(viewportCount)
+		"searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" + m.debug
+	// "suggestion string: " + m.debug + "\n" +
+	// "sugCount: " + strconv.Itoa(suggesCount) + " BodyCount: " + strconv.Itoa(viewportCount)
 }
 
 func (m Model) View() string {

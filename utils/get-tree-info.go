@@ -156,3 +156,16 @@ func (t Tree) GetTreePosiList(tName string, posiList [][]int, treeList []*Tree) 
 	}
 	return posiList, treeList
 }
+
+func (t Tree) GetTreeDepth() int {
+	depth := 0
+
+	for len(t.GetAllSubtree()) > 0 {
+		t = *t.GetAllSubtree()[0]
+		depth++
+	}
+	if len(t.GetNodes()) > 0 {
+		depth++
+	}
+	return depth
+}
