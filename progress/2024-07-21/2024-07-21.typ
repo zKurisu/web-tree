@@ -5,3 +5,4 @@
   - 如何计算出总深度: 当前 y 加上当前 tree 的 subtree 层数, 最后一层有 node, 则还要加 1
   - 设计一个函数: `(t Tree) GetTreeDepth() int`
   - 如果当前选中的是 tree, 则用 `GetTreeDepth` 更新 index; 如果选中的是 node, 则 index 更新为 y 值
+  ✅

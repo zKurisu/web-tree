@@ -397,6 +397,14 @@ func (m Model) debugView() string {
 	}
 	searchBoxHeight := lipgloss.Height(m.searchView())
 
+	if m.ready {
+		if m.isPageDown() {
+			m.debug = "pagedown"
+		} else {
+			m.debug = "wait"
+		}
+	}
+
 	// m.debug = strconv.Itoa(m.viewport.YOffset)
 	// if m.copy {
 	// 	m.debug = "copy.."
@@ -434,7 +442,8 @@ func (m Model) debugView() string {
 		// m.curTree.Name + "\n" +
 		// strconv.Itoa(len(m.tabs)) + "\n" +
 		"Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height) + "\n" +
-		"searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" + m.debug
+		"searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" + strconv.Itoa(m.getYPerPage()) + "\n" +
+		m.debug
 	// "suggestion string: " + m.debug + "\n" +
 	// "sugCount: " + strconv.Itoa(suggesCount) + " BodyCount: " + strconv.Itoa(viewportCount)
 }

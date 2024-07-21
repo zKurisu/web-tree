@@ -296,6 +296,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if len(m.preSelectedTree) > 0 {
 						m.subSelected = m.preSelectedTree[len(m.preSelectedTree)-1]
 						m.preSelectedTree = m.preSelectedTree[:len(m.preSelectedTree)-1]
+
+						if m.isPageUp() {
+							m.viewport.ViewUp()
+						}
 						// if m.viewport.YOffset-m.subSelected.y > 0 {
 						// 	m.viewport.YOffset -= 3
 						// }
@@ -344,6 +348,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.preSelectedTree = append(m.preSelectedTree, m.subSelected)
 						m.subSelected.x = 0
 						m.subSelected.y++
+
+						if m.isPageDown() {
+							m.viewport.ViewDown()
+						}
 						// if m.subSelected.y-m.viewport.YOffset > 1 {
 						// 	m.viewport.YOffset += 3
 						// }

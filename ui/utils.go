@@ -176,6 +176,31 @@ func openLink(browser string, link string) bool {
 	return true
 }
 
+func (m Model) getYPerPage() int {
+	nodeHeight := lipgloss.Height(nodeBoxStyle.Render("x"))
+	yPerPage := m.viewport.Height / nodeHeight
+	return yPerPage
+}
+
+func (m Model) isPageUp() bool {
+	yPerPage := m.getYPerPage()
+	curY := m.subSelected.y
+	if curY%yPerPage == 0 && curY != 0 {
+		return true
+	}
+	return false
+}
+
+func (m Model) isPageDown() bool {
+	// curY % yPerPage == 1, curY != 1
+	yPerPage := m.getYPerPage()
+	curY := m.subSelected.y
+	if curY%yPerPage == 1 && curY != 1 {
+		return true
+	}
+	return false
+}
+
 func (m *Model) blurSearch() {
 	m.searchInput.Blur()
 }
