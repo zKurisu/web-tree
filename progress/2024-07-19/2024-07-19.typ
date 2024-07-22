@@ -24,7 +24,7 @@ x 即均匀减小的宽度大小. `x = (curLineWidth - m.viewport.Width)/totalXI
 当前的不变时, 其他 node 减小多少: `x = (curLineWidth - m.viewport.Width)/(totalXInLine-1)`
 
 = Bug
-- 向上翻页, 最后一页会有问题: Fix 思路, 最后一页改为 LineUp 和 LineDown
+- 向上翻页, 最后一页会有问题: Fix 思路, 最后一页改为 LineUp 和 LineDown ✅
 - 渲染完成之后, 才知道当前行的长度, 因此当前行不会缩短减小
 - 每一行都需要单独考虑缩短的长度
 - 添加 getTreeView 的不递归版本, 仅获取当前行

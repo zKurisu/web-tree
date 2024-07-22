@@ -346,9 +346,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case display:
 				if msg.String() == m.keymap.DOWN.Keys()[1] {
 					if m.subSelected.y < len(m.subMsgs.ylen)-1 {
-						m.preSelectedTree = append(m.preSelectedTree, m.subSelected)
-						m.subSelected.x = 0
-						m.subSelected.y++
+						// depth := m.root.GetTreeDepth()
+						depth := 0
+						switch content := m.subSelected.content.(type) {
+						case *utils.Node:
+							depth = m.subSelected.y
+						case *utils.Tree:
+							depth = m.subSelected.y + content.GetTreeDepth()
+						}
+						if m.subSelected.y < depth {
+							m.preSelectedTree = append(m.preSelectedTree, m.subSelected)
+							m.subSelected.x = 0
+							m.subSelected.y++
+						}
 
 						boxHeight := lipgloss.Height(nodeBoxStyle.Render("s"))
 						if m.isLineMove() {
