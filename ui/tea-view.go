@@ -104,11 +104,6 @@ func (m *Model) suggestionListView() string {
 			b.WriteString(suggestion + "\n")
 		}
 	}
-	//if removeSpace(b.String()) == "" {
-	//	return b.String()
-	//} else {
-	//	return suggestionBoxStyle.Render(b.String())
-	//}
 	return b.String()
 }
 
@@ -293,19 +288,26 @@ func (m Model) viewportView() string {
 }
 
 func (m Model) indexView() string {
-	index := 0
-	depth := 0
-	switch content := m.subSelected.content.(type) {
-	case *utils.Node:
-		index = m.subSelected.y
-		depth = index
-	case *utils.Tree:
-		index = m.subSelected.y
-		depth = index + content.GetTreeDepth()
-	}
+	var indexStr string
+	var startX int
+	sugCount := m.getSugCount()
+	if sugCount != 0 {
+		indexStr = strconv.Itoa(m.sugSelected.index+1) + "/" + strconv.Itoa(sugCount)
+	} else {
+		index := 0
+		depth := 0
+		switch content := m.subSelected.content.(type) {
+		case *utils.Node:
+			index = m.subSelected.y
+			depth = index
+		case *utils.Tree:
+			index = m.subSelected.y
+			depth = index + content.GetTreeDepth()
+		}
 
-	indexStr := strconv.Itoa(index) + "/" + strconv.Itoa(depth)
-	startX := m.viewport.Width - len(indexStr)
+		indexStr = strconv.Itoa(index) + "/" + strconv.Itoa(depth)
+	}
+	startX = m.viewport.Width - len(indexStr)
 
 	return strings.Repeat(" ", startX) + indexStr
 }
@@ -329,10 +331,6 @@ func (m Model) headerView() string {
 func (m Model) bodyView() string {
 	var bodyBox strings.Builder
 
-	suggestionString := m.suggestionListView()
-	if len(suggestionString) != 0 {
-		m.viewport.SetContent(suggestionString)
-	}
 	bodyBox.WriteString(m.treeTabView())
 	bodyBox.WriteString("\n")
 	bodyBox.WriteString(m.viewportView())
@@ -460,7 +458,8 @@ func (m Model) debugView() string {
 		"Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height) + "\n" +
 		"searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" + strconv.Itoa(m.getYPerPage()) + "\n" +
 		"totalX: " + strconv.Itoa(m.getTotalXInLine()) + " " + "totalW: " + strconv.Itoa(m.getCurLineWidth()) + "\n" +
-		"totalReduce: " + strconv.Itoa(totalReduce)
+		"totalReduce: " + strconv.Itoa(totalReduce) + "\n" +
+		strconv.Itoa(m.getSugPerPage()) + " sugSe: " + strconv.Itoa(m.sugSelected.index+1)
 	// "suggestion string: " + m.debug + "\n" +
 	// "sugCount: " + strconv.Itoa(suggesCount) + " BodyCount: " + strconv.Itoa(viewportCount)
 }

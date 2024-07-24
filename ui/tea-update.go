@@ -123,11 +123,18 @@ func (m *Model) updateContent() {
 		selectedContent, _ := m.tabSelected.content.(string)
 		t := root.FindSubTree(selectedContent)
 		m.subMsgs.ylen = []int{len(m.tabs)}
-		m.content = m.getTreeView(t, 1)
+
+		suggestionString := m.suggestionListView()
+		if len(suggestionString) != 0 {
+			m.viewport.SetContent(suggestionString)
+		} else {
+			m.content = m.getTreeView(t, 1)
+			m.viewport.SetContent(m.content)
+		}
+
 		if m.subSelected.y == 0 {
 			m.subSelected.content = t
 		}
-		m.viewport.SetContent(m.content)
 	} else {
 		m.viewport.SetContent("")
 	}
@@ -265,6 +272,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.sugSelected.index--
 					if m.sugSelected.index < 0 {
 						m.sugSelected.index = len(m.browseInput.AvailableSuggestions()) - 1
+						m.viewport.GotoBottom()
 					}
 				}
 			case search:
@@ -272,6 +280,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.sugSelected.index--
 					if m.sugSelected.index < 0 {
 						m.sugSelected.index = len(m.searchInput.AvailableSuggestions()) - 1
+						m.viewport.GotoBottom()
 					}
 				}
 			case advancedSearch:
@@ -281,6 +290,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.adInpSelected.index = 0
 					} else {
 						m.sugSelected = selected{index: 0}
+						m.viewport.GotoBottom()
 					}
 				}
 			case add:
@@ -290,6 +300,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.addInpSelected.index = 0
 					} else {
 						m.sugSelected = selected{index: 0}
+						m.viewport.GotoBottom()
 					}
 				}
 			case display:
@@ -307,6 +318,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
+			sugPerPage := m.getSugPerPage()
+			if m.sugSelected.index+1 > sugPerPage {
+				m.viewport.LineUp(1)
+			}
 		case key.Matches(msg, m.keymap.DOWN):
 			switch m.mode {
 			case browser:
@@ -314,6 +329,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.sugSelected.index++
 					if m.sugSelected.index >= len(m.browseInput.AvailableSuggestions()) {
 						m.sugSelected.index = 0
+						m.viewport.GotoTop()
 					}
 				}
 			case search:
@@ -321,6 +337,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.sugSelected.index++
 					if m.sugSelected.index >= len(m.searchInput.AvailableSuggestions()) {
 						m.sugSelected.index = 0
+						m.viewport.GotoTop()
 					}
 				}
 			case advancedSearch:
@@ -331,6 +348,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.adInpSelected.index = len(m.adSearchInput)
 					} else {
 						m.sugSelected = selected{index: 0}
+						m.viewport.GotoTop()
 					}
 				}
 			case add:
@@ -341,6 +359,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.addInpSelected.index = len(m.addInput)
 					} else {
 						m.sugSelected = selected{index: 0}
+						m.viewport.GotoTop()
 					}
 				}
 			case display:
@@ -368,6 +387,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 					}
 				}
+			}
+			sugPerPage := m.getSugPerPage()
+			if m.sugSelected.index+1 > sugPerPage && msg.String() == m.keymap.DOWN.Keys()[0] {
+				m.viewport.LineDown(1)
 			}
 		case key.Matches(msg, m.keymap.LEFT):
 			switch m.mode {
@@ -704,6 +727,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					for i, posi := range preTreePosiList {
 						m.preSelectedTree = append(m.preSelectedTree, point{posi[0], posi[1], preTreeList[i]})
 					}
+					m.sugSelected.index = 0
 					m.mode = display
 					m.afterModeChange()
 				}
@@ -744,6 +768,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					for i, posi := range preTreePosiList {
 						m.preSelectedTree = append(m.preSelectedTree, point{posi[0], posi[1], preTreeList[i]})
 					}
+					m.sugSelected.index = 0
+
 					m.lastMode = m.mode
 					m.mode = display
 					m.afterModeChange()
@@ -1003,8 +1029,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.updateAdSearch()
 	m.updateBrowseInput()
 	m.updateAddInput()
-	m.updateContent()
 	m.updateSuggestionList()
+	m.updateContent()
 	m.updateTextarea()
 	m.updateWindow()
 	// m.updateConfirmInput()

@@ -254,6 +254,20 @@ func (m Model) getAveReducedWidth() int {
 	return 0
 }
 
+func (m Model) getSugCount() int {
+	var totalCount int = 0
+	if m.mode == search || m.mode == browser && len(m.suggestionList) != 0 {
+		totalCount = len(m.suggestionList)
+	} else if m.mode == advancedSearch && len(m.adsuggestionList[m.adInpSelected.index]) != 0 {
+		totalCount = len(m.adsuggestionList[m.adInpSelected.index])
+	}
+	return totalCount
+}
+
+func (m Model) getSugPerPage() int {
+	return m.viewport.Height
+}
+
 func (m *Model) blurSearch() {
 	m.searchInput.Blur()
 }
