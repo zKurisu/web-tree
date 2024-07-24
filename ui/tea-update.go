@@ -160,16 +160,19 @@ func (m *Model) afterModeChange() {
 	case browser:
 		sequence(m.blurSearch, m.blurAdsearch, m.blurAddInput, m.blurTextarea)
 
+		m.viewport.GotoTop()
 		m.browseInput.Focus()
 		m.browseInput.ShowSuggestions = true
 	case search:
 		sequence(m.blurAdsearch, m.blurAddInput, m.blurTextarea, m.blurBrowse)
 
+		m.viewport.GotoTop()
 		m.searchInput.Focus()
 		m.searchInput.ShowSuggestions = true
 	case advancedSearch:
 		sequence(m.blurSearch, m.blurAddInput, m.blurTextarea, m.blurBrowse)
 
+		m.viewport.GotoTop()
 		m.adSearchInput[0].Focus()
 		for i := range m.adSearchInput {
 			m.adSearchInput[i].ShowSuggestions = true
@@ -719,6 +722,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					for i, tab := range m.tabs {
 						if tab == tabTarget {
+							m.jumpTabPage(tab)
 							m.tabSelected.index = i
 						}
 					}
@@ -801,17 +805,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							SubTrees: utils.GetAllRootSubTree(),
 							Nodes:    []*utils.Node{},
 						}
-						root = utils.RootTree
-						m.tabs = root.GetAllSubtreeName()
-						m.paginator.SetTotalPages(len(root.GetAllSubtreeName()))
-
-						oriPageNumber := getPageNumber(m.tabSelected.index)
-						m.tabSelected.index = getIndex(m.tabs, treeName)
-						newPageNumber := getPageNumber(m.tabSelected.index)
-
-						for i := 0; i < newPageNumber-oriPageNumber; i++ {
-							m.paginator.NextPage()
-						}
+						m.jumpTabPage(treeName)
 					}
 
 					t := root.DeepFindSubTree(treeName)

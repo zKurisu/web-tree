@@ -142,15 +142,17 @@ func (t Tree) GetSubTreePosi(tName string) (int, int) {
 
 func (t Tree) GetTreePosiList(tName string, posiList [][]int, treeList []*Tree) ([][]int, []*Tree) {
 	levels := SplitTreeLevel(tName)
-	targetTreeName := t.subTreeNameWrap(levels[0])
+	if len(levels) > 0 {
+		targetTreeName := t.subTreeNameWrap(levels[0])
 
-	for _, subTree := range t.GetAllSubtree() {
-		if subTree.GetTreeName() == targetTreeName {
-			x, y := t.GetSubTreePosi(targetTreeName)
-			posiList = append(posiList, []int{x, y})
-			treeList = append(treeList, subTree)
-			if len(levels) > 1 {
-				return subTree.GetTreePosiList(strings.Join(levels[1:], "/"), posiList, treeList)
+		for _, subTree := range t.GetAllSubtree() {
+			if subTree.GetTreeName() == targetTreeName {
+				x, y := t.GetSubTreePosi(targetTreeName)
+				posiList = append(posiList, []int{x, y})
+				treeList = append(treeList, subTree)
+				if len(levels) > 1 {
+					return subTree.GetTreePosiList(strings.Join(levels[1:], "/"), posiList, treeList)
+				}
 			}
 		}
 	}

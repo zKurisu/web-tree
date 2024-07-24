@@ -397,42 +397,53 @@ func (m Model) debugView() string {
 		lastMode = "browser"
 	}
 
-	strYlens := []string{}
-	for _, ylen := range m.subMsgs.ylen {
-		strYlens = append(strYlens, strconv.Itoa(ylen))
-	}
-	// strYlen := strings.Join(strYlens, " ")
+	// strYlens := []string{}
+	// for _, ylen := range m.subMsgs.ylen {
+	// 	strYlens = append(strYlens, strconv.Itoa(ylen))
+	// }
+	// // strYlen := strings.Join(strYlens, " ")
 
-	preStr := ""
-	for _, point := range m.preSelectedTree {
-		preStr += "{" + strconv.Itoa(point.x) + "," + strconv.Itoa(point.y) + "}"
-	}
-	searchBoxHeight := lipgloss.Height(m.searchView())
-	totalReduce := 0
+	// preStr := ""
+	// for _, point := range m.preSelectedTree {
+	// 	preStr += "{" + strconv.Itoa(point.x) + "," + strconv.Itoa(point.y) + "}"
+	// }
+	// searchBoxHeight := lipgloss.Height(m.searchView())
+	// totalReduce := 0
 
-	if m.ready {
-		if m.isPageDown() {
-			m.debug = "pagedown"
-		} else {
-			m.debug = "wait"
-		}
-		totalReduce = m.getAveReducedWidth()
-	}
+	// if m.ready {
+	// 	if m.isPageDown() {
+	// 		m.debug = "pagedown"
+	// 	} else {
+	// 		m.debug = "wait"
+	// 	}
+	// 	totalReduce = m.getAveReducedWidth()
+	// }
 
 	// m.debug = strconv.Itoa(m.viewport.YOffset)
 	// if m.copy {
 	// 	m.debug = "copy.."
 	// }
 
+	nodePath := ""
+	switch content := m.sugSelected.content.(type) {
+	case nodeMsg:
+		nodePath = content.path
+		hint := append(content.link, content.alias...)
+		m.subMsgs.searchedContent = utils.RootTree.DeepFindSubTree(nodePath).FindNode(hint)
+		// tabTarget = strings.Split(content.path, "/")[0]
+	case treeMsg:
+		// tabTarget = strings.Split(content.path, "/")[0]
+	}
 	// posiList := [][]int{}
 	// posiX, posiY := 0, 0
 	// treeName := ""
-	// switch content := m.subSelected.content.(type) {
-	// case *utils.Tree:
-	// 	posiX, posiY = m.root.DeepGetTreePosi(content.GetTreeName(), 0)
-	// 	posiList = m.root.GetTreePosiList(content.GetTreeName(), [][]int{})
-	// 	treeName = content.GetTreeName()
-	// }
+	//nodePath := ""
+	//switch content := m.subSelected.content.(type) {
+	//case *utils.Tree:
+	//	// posiX, posiY = m.root.DeepGetTreePosi(content.GetTreeName(), 0)
+	//	// posiList = m.root.GetTreePosiList(content.GetTreeName(), [][]int{})
+	//	// treeName = content.GetTreeName()
+	//}
 	// posiListView := ""
 	// for _, elem := range posiList {
 	// 	posiListView += "[" + strconv.Itoa(elem[0]) + " " + strconv.Itoa(elem[1]) + "] "
@@ -444,22 +455,22 @@ func (m Model) debugView() string {
 	// 	"\n" + "point x, y: " + strconv.Itoa(m.subSelected.x) + " " + strconv.Itoa(m.subSelected.y) +
 	// 	"\n" + strconv.Itoa(len(m.subMsgs.ylen))
 	// 	"\n" + strconv.Itoa(count)
-	return "last: " + lastMode + " current: " + s + "\n" +
-		// "PreSelectedTree.x:" + strconv.Itoa(m.preSelectedTree.x) + " PreSelectedTree.y:" + strconv.Itoa(m.preSelectedTree.y) + "\n" +
-		"PreSelectedTree: " + preStr + "\n" +
-		// "posiX: " + strconv.Itoa(posiX) + "posiY: " + strconv.Itoa(posiY) + "\n" +
-		// "posiListView: " + posiListView + "\n" +
-		// "TreeName: " + treeName + "\n" +
-		"subSelected.x:" + strconv.Itoa(m.subSelected.x) + " subSelected.y:" + strconv.Itoa(m.subSelected.y) + "\n" +
-		// "ylen: " + strconv.Itoa(len(m.subMsgs.ylen)) + "\n" +
-		// "all ylen: " + strYlen + "\n" +
-		// m.curTree.Name + "\n" +
-		// strconv.Itoa(len(m.tabs)) + "\n" +
-		"Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height) + "\n" +
-		"searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" + strconv.Itoa(m.getYPerPage()) + "\n" +
-		"totalX: " + strconv.Itoa(m.getTotalXInLine()) + " " + "totalW: " + strconv.Itoa(m.getCurLineWidth()) + "\n" +
-		"totalReduce: " + strconv.Itoa(totalReduce) + "\n" +
-		strconv.Itoa(m.getSugPerPage()) + " sugSe: " + strconv.Itoa(m.sugSelected.index+1)
+	return "last: " + lastMode + " current: " + s + "\n" + nodePath
+	// "PreSelectedTree.x:" + strconv.Itoa(m.preSelectedTree.x) + " PreSelectedTree.y:" + strconv.Itoa(m.preSelectedTree.y) + "\n" +
+	// "PreSelectedTree: " + preStr + "\n" +
+	// "posiX: " + strconv.Itoa(posiX) + "posiY: " + strconv.Itoa(posiY) + "\n" +
+	// "posiListView: " + posiListView + "\n" +
+	// "TreeName: " + treeName + "\n" +
+	// "subSelected.x:" + strconv.Itoa(m.subSelected.x) + " subSelected.y:" + strconv.Itoa(m.subSelected.y) + "\n" +
+	// "ylen: " + strconv.Itoa(len(m.subMsgs.ylen)) + "\n" +
+	// "all ylen: " + strYlen + "\n" +
+	// m.curTree.Name + "\n" +
+	// strconv.Itoa(len(m.tabs)) + "\n" +
+	// "Width: " + strconv.Itoa(m.winMsgs.Width) + " Height: " + strconv.Itoa(m.winMsgs.Height) + "\n" +
+	// "searchBoxHeight: " + strconv.Itoa(searchBoxHeight) + "\n" + strconv.Itoa(m.getYPerPage()) + "\n" +
+	// "totalX: " + strconv.Itoa(m.getTotalXInLine()) + " " + "totalW: " + strconv.Itoa(m.getCurLineWidth()) + "\n" +
+	// "totalReduce: " + strconv.Itoa(totalReduce) + "\n" +
+	// strconv.Itoa(m.getSugPerPage()) + " sugSe: " + strconv.Itoa(m.sugSelected.index+1)
 	// "suggestion string: " + m.debug + "\n" +
 	// "sugCount: " + strconv.Itoa(suggesCount) + " BodyCount: " + strconv.Itoa(viewportCount)
 }

@@ -268,6 +268,20 @@ func (m Model) getSugPerPage() int {
 	return m.viewport.Height
 }
 
+func (m *Model) jumpTabPage(treeName string) {
+	root := utils.RootTree
+	m.tabs = root.GetAllSubtreeName()
+	m.paginator.SetTotalPages(len(root.GetAllSubtreeName()))
+
+	oriPageNumber := getPageNumber(m.tabSelected.index)
+	m.tabSelected.index = getIndex(m.tabs, treeName)
+	newPageNumber := getPageNumber(m.tabSelected.index)
+
+	for i := 0; i < newPageNumber-oriPageNumber; i++ {
+		m.paginator.NextPage()
+	}
+}
+
 func (m *Model) blurSearch() {
 	m.searchInput.Blur()
 }
