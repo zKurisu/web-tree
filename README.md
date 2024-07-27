@@ -5,7 +5,10 @@ Using bubbletea and libgloss to write a web favorates handler for command line u
 
 It's still in the development stage, and I'm dealing with problems with the UI components. Code comments and documentation will be written soon. Bugs are being fixed along the way!
 
-![](https://github.com/user-attachments/assets/decc043c-c6e7-4e53-81b7-b1d8525576fd)
+<video src="https://github.com/user-attachments/assets/decc043c-c6e7-4e53-81b7-b1d8525576fd" controls="controls" style="max-width: 100%;">
+  Your browser does not support the video tag.
+</video>
+
 # Targets
 
     Have a nice UI, customization of UI components'position, maybe drag with mouse and store the new position parameter
