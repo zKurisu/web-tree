@@ -113,7 +113,7 @@ func IsTreeEqual(t1, t2 *Tree) bool {
 		// log.Printf("%d %d", len(t1.Nodes), len(t2.Nodes))
 		for i := 0; i < len(t1.Nodes); i++ {
 			if !isNodeEqual(t1.Nodes[i], t2.Nodes[i]) {
-				log.Println("Node does not equal")
+				// log.Println("Node does not equal")
 				return false
 			}
 		}

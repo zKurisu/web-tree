@@ -44,6 +44,8 @@ func (m Model) searchView() string {
 				s = s + m.addInput[i].View() + "\n"
 			}
 			s = s + adSearchSubmitStyle.Render("Add")
+		default:
+			s = m.searchInput.View()
 		}
 	}
 	return s
@@ -350,19 +352,20 @@ func (m Model) helpView() string {
 }
 
 func (m Model) headerView() string {
-	var searchBox strings.Builder
-	searchBox.WriteString(m.browserView()) // Browser box is needed
-	searchBox.WriteString("\n")
-	searchBox.WriteString(m.searchView())
-	return searchBox.String()
+	// var searchBox strings.Builder
+	// searchBox.WriteString(m.browserView()) // Browser box is needed
+	// searchBox.WriteString("\n")
+	// searchBox.WriteString(m.searchView())
+	// return searchBox.String()
+	return lipgloss.JoinVertical(lipgloss.Top, m.browserView(), m.searchView())
 }
 
 func (m Model) bodyView() string {
-	var bodyBox strings.Builder
+	// var bodyBox strings.Builder
 
-	bodyBox.WriteString(m.treeTabView())
-	bodyBox.WriteString("\n")
-	bodyBox.WriteString(m.viewportView())
+	// bodyBox.WriteString(m.treeTabView())
+	// bodyBox.WriteString("\n")
+	// bodyBox.WriteString(m.viewportView())
 
 	// delPopWinBytes := []byte(m.delPopWinView())
 	// displayBytes := []byte(displayBox.String())
@@ -374,19 +377,22 @@ func (m Model) bodyView() string {
 	// 	replaceLen = len(suggestionListBytes)
 	// }
 	// displayBytes = append(suggestionListBytes[:replaceLen], displayBytes[replaceLen:]...)
-	return bodyBox.String()
+	// return bodyBox.String()
+	return lipgloss.JoinVertical(lipgloss.Top, m.treeTabView(), m.viewportView())
 }
 
 func (m Model) footerView() string {
-	var footerBox strings.Builder
-	footerBox.WriteString(m.paginatorView())
-	footerBox.WriteString("\n")
-	footerBox.WriteString(m.debugView())
-	footerBox.WriteString("\n")
-	footerBox.WriteString(m.confirmView())
-	footerBox.WriteString("\n")
-	footerBox.WriteString(m.helpView())
-	return footerBox.String()
+	// var footerBox strings.Builder
+	// footerBox.WriteString(m.paginatorView())
+	// footerBox.WriteString("\n")
+	// footerBox.WriteString(m.debugView())
+	// footerBox.WriteString("\n")
+	// footerBox.WriteString(m.confirmView())
+	// footerBox.WriteString("\n")
+	// footerBox.WriteString(m.helpView())
+	// return footerBox.String()
+	return lipgloss.JoinVertical(lipgloss.Top, m.paginatorView(), m.debugView(),
+		m.confirmView(), m.helpView())
 }
 
 func (m Model) debugView() string {
