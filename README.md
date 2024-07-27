@@ -31,11 +31,24 @@ It's still in the development stage, and I'm dealing with problems with the UI c
     Browser list show ✅
     Sort method, tree? node? label and so on.
 
+# Installation
+```sh
+git clone https://github.com/zKurisu/web-tree.git
+cd web-tree
+go build .
+./web-tree
+```
+
+You can copy the binary file to local path:
+```sh
+cp ./web-tree/web-tree ~/.local/bin/
+```
+
 # Mode
 Press specific keys to enter different modes:
     
 |Mode|Key|Desc
--|-
+-|-|-
 Display|ESC|From any mode
 Search|Ctrl+n|From any mode.
 AdSearch|Ctrl+u|From any mode
@@ -231,5 +244,3 @@ webtree show --tree=<name> --node --alias=<alias>
 webtree show --label=<name>
 ```
 
-# Installation
-You should not install this version, it's still hard to use, I will implement these problems in the following days.

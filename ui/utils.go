@@ -126,8 +126,9 @@ func removeSpace(s string) string {
 	return re.ReplaceAllString(s, "")
 }
 
-func getPageNumber(index int) int {
-	return index/5 + 1
+func (m Model) getPageNumber(index int) int {
+	tabPerPage := m.paginator.PerPage
+	return index/tabPerPage + 1
 }
 
 func getIndex(slice []string, s string) int {
@@ -158,7 +159,7 @@ func (m *Model) getVerticalMarginHeight() int {
 	verticalMarginHeight :=
 		intSum(verticalMarginHeightComponents) + len(verticalMarginHeightComponents) - 3 // 4: include header, body, footer
 
-	m.debug = strconv.Itoa(verticalMarginHeight)
+	// m.debug = strconv.Itoa(verticalMarginHeight)
 
 	if m.mode != confirm {
 		verticalMarginHeight = verticalMarginHeight - confirmHeight
@@ -294,12 +295,18 @@ func (m *Model) jumpTabPage(treeName string) {
 	m.tabs = root.GetAllSubtreeName()
 	m.paginator.SetTotalPages(len(root.GetAllSubtreeName()))
 
-	oriPageNumber := getPageNumber(m.tabSelected.index)
+	oriPageNumber := m.getPageNumber(m.tabSelected.index)
 	m.tabSelected.index = getIndex(m.tabs, treeName)
-	newPageNumber := getPageNumber(m.tabSelected.index)
+	newPageNumber := m.getPageNumber(m.tabSelected.index)
+	m.debug = strconv.Itoa(oriPageNumber) + " " + strconv.Itoa(newPageNumber)
 
-	for i := 0; i < newPageNumber-oriPageNumber; i++ {
-		m.paginator.NextPage()
+	diff := newPageNumber - oriPageNumber
+	for i := float64(0); i < math.Abs(float64(diff)); i++ {
+		if diff < 0 {
+			m.paginator.PrevPage()
+		} else {
+			m.paginator.NextPage()
+		}
 	}
 }
 

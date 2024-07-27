@@ -194,7 +194,7 @@ var (
 	BottonBoxStyle         = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
 	BottonBoxSelectedStyle = activeStyle.Copy().Border(lipgloss.RoundedBorder()).Background(lipgloss.Color("#476"))
 
-	nodeBoxStyle    = inactiveStyle.Copy().Border(lipgloss.RoundedBorder())
+	nodeBoxStyle    = inactiveStyle.Copy().Border(lipgloss.RoundedBorder()).Foreground(lipgloss.Color("#a44"))
 	nodeBoxSelected = activeStyle.Copy().Border(lipgloss.RoundedBorder()).Background(lipgloss.Color("#476"))
 	linkStyle       = noStyle.Copy().Foreground(lipgloss.Color("#9338f9"))
 	aliasStyle      = noStyle.Copy().Foreground(lipgloss.Color("#933909"))

@@ -409,6 +409,7 @@ func (m Model) debugView() string {
 	case browser:
 		s = "browser"
 	}
+
 	switch m.lastMode {
 	case search:
 		lastMode = "search"
@@ -484,7 +485,8 @@ func (m Model) debugView() string {
 	// 	"\n" + "point x, y: " + strconv.Itoa(m.subSelected.x) + " " + strconv.Itoa(m.subSelected.y) +
 	// 	"\n" + strconv.Itoa(len(m.subMsgs.ylen))
 	// 	"\n" + strconv.Itoa(count)
-	return "last: " + lastMode + " current: " + s + "\n" + nodePath
+	return "last: " + lastMode + " current: " + s + "\n" + nodePath + "\n" +
+		m.debug
 	// "PreSelectedTree.x:" + strconv.Itoa(m.preSelectedTree.x) + " PreSelectedTree.y:" + strconv.Itoa(m.preSelectedTree.y) + "\n" +
 	// "PreSelectedTree: " + preStr + "\n" +
 	// "posiX: " + strconv.Itoa(posiX) + "posiY: " + strconv.Itoa(posiY) + "\n" +
