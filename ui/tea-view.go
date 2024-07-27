@@ -136,6 +136,7 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 	var nodeSelected = 0
 	var nextree *utils.Tree
 	rendered := []string{}
+	renderHint := []int{}
 
 	if len(t.GetAllSubtree()) > 0 {
 		for _, sub := range t.GetAllSubtree() {
@@ -145,6 +146,8 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 					nextree = sub
 				}
 			}
+
+			renderedBox := ""
 			if x == m.subSelected.x && y == m.subSelected.y {
 				m.curTree = t // Get fathertree address, using for deletion
 				m.subSelected.content = sub
@@ -158,16 +161,17 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 					width := lipgloss.Width(treeName + "          ")
 					m.textarea.SetWidth(width)
 					m.textarea.SetHeight(height)
-					rendered = append(rendered, treeBoxSelectedStyle.Render(m.textarea.View()))
+					renderedBox = treeBoxSelectedStyle.Render(m.textarea.View())
 				default:
-					rendered = append(rendered, treeBoxSelectedStyle.Render(treeName))
+					renderedBox = treeBoxSelectedStyle.Render(treeName)
 				}
 			} else {
 				if nextTreeLock == 0 {
 					nextree = t.GetAllSubtree()[0]
 				}
-				rendered = append(rendered, m.getRenderedTreeName(sub))
+				renderedBox = m.getRenderedTreeName(sub)
 			}
+			rendered = append(rendered, renderedBox)
 			x++
 		}
 	}

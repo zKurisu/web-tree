@@ -282,6 +282,30 @@ func (m *Model) jumpTabPage(treeName string) {
 	}
 }
 
+func renderTreeComponents(components []string, renderHint []int) string {
+	if len(components) != len(renderHint) {
+		log.Fatal("Length of components does not equal to renderHint!")
+	}
+	rendered := []string{}
+	for i, hint := range renderHint {
+		component := components[i]
+		var style lipgloss.Style
+
+		switch hint {
+		case treeBoxSel:
+			style = treeBoxSelectedStyle
+		case treeBox:
+			style = treeBoxStyle
+		case nodeBoxSel:
+			style = nodeBoxSelected
+		case nodeBox:
+			style = nodeBoxStyle
+		}
+		rendered = append(rendered, style.Render(component))
+	}
+	return lipgloss.JoinHorizontal(lipgloss.Top, rendered...)
+}
+
 func (m *Model) blurSearch() {
 	m.searchInput.Blur()
 }
