@@ -135,8 +135,9 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 	var nextTreeLock = 0
 	var nodeSelected = 0
 	var nextree *utils.Tree
-	rendered := []string{}
-	renderHint := []int{}
+	renderedLine := ""
+	components := []string{}
+	styles := []lipgloss.Style{}
 
 	if len(t.GetAllSubtree()) > 0 {
 		for _, sub := range t.GetAllSubtree() {
@@ -147,7 +148,8 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 				}
 			}
 
-			renderedBox := ""
+			var style lipgloss.Style
+			component := ""
 			if x == m.subSelected.x && y == m.subSelected.y {
 				m.curTree = t // Get fathertree address, using for deletion
 				m.subSelected.content = sub
@@ -155,23 +157,28 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 				nextree = sub
 				treeName := sub.GetTreeName()
 
+				style = treeBoxSelectedStyle
 				switch m.mode {
 				case edit:
 					height := lipgloss.Height(treeName)
 					width := lipgloss.Width(treeName + "          ")
 					m.textarea.SetWidth(width)
 					m.textarea.SetHeight(height)
-					renderedBox = treeBoxSelectedStyle.Render(m.textarea.View())
+					component = m.textarea.View()
 				default:
-					renderedBox = treeBoxSelectedStyle.Render(treeName)
+					component = treeName
 				}
 			} else {
 				if nextTreeLock == 0 {
 					nextree = t.GetAllSubtree()[0]
 				}
-				renderedBox = m.getRenderedTreeName(sub)
+
+				style = treeBoxStyle
+				component = sub.GetTreeBaseName()
 			}
-			rendered = append(rendered, renderedBox)
+
+			styles = append(styles, style)
+			components = append(components, component)
 			x++
 		}
 	}
@@ -187,6 +194,8 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 				}
 			}
 
+			var style lipgloss.Style
+			component := ""
 			if y == m.subSelected.y && x == m.subSelected.x {
 				nodeSelected = 1
 				m.curTree = t // Get fathertree address, using for deletion
@@ -199,23 +208,35 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 					width := lipgloss.Width(strings.Join(node.Link, " ") + "          ")
 					m.textarea.SetWidth(width)
 					m.textarea.SetHeight(height)
-					rendered = append(rendered, nodeBoxSelected.Render(m.textarea.View()))
+					component = m.textarea.View()
 				default:
-					rendered = append(rendered, nodeBoxSelected.Render(m.getNodeView(node)))
+					component = m.getNodeView(node)
 				}
+				style = nodeBoxSelected
+
 				m.detail = false
 			} else {
-				rendered = append(rendered, nodeBoxStyle.Render(m.getNodeView(node)))
+				style = nodeBoxStyle
+				component = m.getNodeView(node)
 			}
+
+			styles = append(styles, style)
+			components = append(components, component)
 			x++
 		}
 	}
 
 	m.subMsgs.ylen = append(m.subMsgs.ylen, x)
-	renderedLine := lipgloss.JoinHorizontal(lipgloss.Top, rendered...)
+	renderedLine = renderTreeComponents(components, styles)
+	lineWidth := lipgloss.Width(renderedLine)
+	reducedWidth := 0
 	if m.subSelected.y == y {
-		m.curLineWidth = lipgloss.Width(renderedLine)
+		reducedWidth = m.getCurLineAveReducedWidth(lineWidth)
+	} else {
+		reducedWidth = m.getAveReducedWidth(lineWidth)
 	}
+	newComponents := reduceWidth(components, reducedWidth)
+	renderedLine = renderTreeComponents(newComponents, styles)
 
 	b.WriteString(renderedLine)
 	b.WriteString("\n")
@@ -243,13 +264,17 @@ func (m Model) getNodeView(n *utils.Node) string {
 	case m.detail:
 		s = m.expandNodeView(n)
 	case m.toggle:
-		hint := n.Alias[0]
-		s = aliasStyle.Render(hint)
+		s = n.GetNodeAlias()[0]
+
+		// hint := n.Alias[0]
+		// s = aliasStyle.Render(hint)
 		// s = aliasStyle.Render(hint[:len(hint)-aveReducedWidth])
 		// s = s[:len(s)-aveReducedWidth]
 	default:
-		hint := n.Link[0]
-		s = linkStyle.Render(hint)
+		s = n.GetNodeLinks()[0]
+
+		// hint := n.Link[0]
+		// s = linkStyle.Render(hint)
 		// s = linkStyle.Render(hint[:len(hint)-aveReducedWidth])
 		// s = s[:len(s)-aveReducedWidth]
 	}

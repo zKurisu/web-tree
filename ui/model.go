@@ -128,13 +128,6 @@ const (
 	browser
 )
 
-const (
-	treeBoxSel int = iota
-	treeBox
-	nodeBoxSel
-	nodeBox
-)
-
 var (
 	treeWidth  = 5
 	treeHeight = 5

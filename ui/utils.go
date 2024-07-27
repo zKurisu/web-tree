@@ -234,24 +234,45 @@ func (m Model) getCurLineWidth() int {
 	return m.curLineWidth
 }
 
-func (m Model) getAveReducedWidth() int {
+func (m Model) getAveReducedWidth(lineWidth int) int {
 	width := 0.0
-	curLineWidth := m.getCurLineWidth()
 	totalXInLine := m.getTotalXInLine()
 	if totalXInLine > 0 {
-		if m.subSelected.y == 0 || totalXInLine == 1 {
-			// no selected one
-			width = float64(curLineWidth-m.viewport.Width) / float64(totalXInLine)
-		} else {
-			// except selected one
-			width = float64(curLineWidth-m.viewport.Width) / float64(totalXInLine-1)
-		}
+		width = float64(lineWidth-m.viewport.Width) / float64(totalXInLine)
 	}
 
 	if width > 0 {
 		return int(math.Ceil(width))
 	}
 	return 0
+}
+
+func (m Model) getCurLineAveReducedWidth(lineWidth int) int {
+	width := 0.0
+	totalXInLine := m.getTotalXInLine()
+	if totalXInLine > 1 {
+		width = float64(lineWidth-m.viewport.Width) / float64(totalXInLine-1)
+	}
+
+	if width > 0 {
+		return int(math.Ceil(width))
+	}
+	return 0
+}
+
+func reduceWidth(components []string, width int) []string {
+	reducedComponent := []string{}
+	for _, component := range components {
+		oriLen := len(component)
+		if oriLen > width {
+			component = component[:oriLen-width]
+		} else {
+			component = component[:1]
+		}
+		reducedComponent = append(reducedComponent, component)
+	}
+
+	return reducedComponent
 }
 
 func (m Model) getSugCount() int {
@@ -282,25 +303,14 @@ func (m *Model) jumpTabPage(treeName string) {
 	}
 }
 
-func renderTreeComponents(components []string, renderHint []int) string {
-	if len(components) != len(renderHint) {
+func renderTreeComponents(components []string, styles []lipgloss.Style) string {
+	if len(components) != len(styles) {
 		log.Fatal("Length of components does not equal to renderHint!")
 	}
 	rendered := []string{}
-	for i, hint := range renderHint {
+	for i, style := range styles {
 		component := components[i]
-		var style lipgloss.Style
 
-		switch hint {
-		case treeBoxSel:
-			style = treeBoxSelectedStyle
-		case treeBox:
-			style = treeBoxStyle
-		case nodeBoxSel:
-			style = nodeBoxSelected
-		case nodeBox:
-			style = nodeBoxStyle
-		}
 		rendered = append(rendered, style.Render(component))
 	}
 	return lipgloss.JoinHorizontal(lipgloss.Top, rendered...)
