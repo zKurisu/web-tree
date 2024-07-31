@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 	"sort"
-	"strconv"
+	// "strconv"
 	"strings"
 	"syscall"
 	"web-tree/utils"
@@ -298,7 +298,7 @@ func (m *Model) jumpTabPage(treeName string) {
 	oriPageNumber := m.getPageNumber(m.tabSelected.index)
 	m.tabSelected.index = getIndex(m.tabs, treeName)
 	newPageNumber := m.getPageNumber(m.tabSelected.index)
-	m.debug = strconv.Itoa(oriPageNumber) + " " + strconv.Itoa(newPageNumber)
+	// m.debug = strconv.Itoa(oriPageNumber) + " " + strconv.Itoa(newPageNumber)
 
 	diff := newPageNumber - oriPageNumber
 	for i := float64(0); i < math.Abs(float64(diff)); i++ {

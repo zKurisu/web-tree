@@ -805,6 +805,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							SubTrees: utils.GetAllRootSubTree(),
 							Nodes:    []*utils.Node{},
 						}
+						root = utils.RootTree
 						m.jumpTabPage(treeName)
 					}
 
@@ -812,6 +813,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					n, _ := utils.NewNode(links, alias, desc, icon, label, "None")
 					if len(links) != 0 && links[0] != "" {
 						t.AppendNode(n)
+						m.debug = "Add a new node"
 					}
 					utils.WriteAll()
 
