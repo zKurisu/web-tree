@@ -261,15 +261,21 @@ func (m Model) getCurLineAveReducedWidth(lineWidth int) int {
 	return 0
 }
 
-func reduceWidth(components []string, width int) []string {
+func (m Model) reduceWidth(components []string, width int) []string {
 	reducedComponent := []string{}
-	for _, component := range components {
-		oriLen := len(component)
-		if oriLen > width {
-			component = component[:oriLen-width]
-		} else {
+	totalReducedWidth := width * len(components)
+
+	for index, component := range components {
+		if totalReducedWidth > 0 && index != m.subSelected.x {
+			totalReducedWidth = totalReducedWidth - len(component) + 1
 			component = component[:1]
 		}
+		// oriLen := len(component)
+		// if oriLen > width {
+		// 	component = component[:oriLen-width]
+		// } else {
+		// 	component = component[:1]
+		// }
 		reducedComponent = append(reducedComponent, component)
 	}
 

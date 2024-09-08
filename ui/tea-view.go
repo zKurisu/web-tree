@@ -237,7 +237,8 @@ func (m *Model) getTreeView(t *utils.Tree, y int) string {
 	} else {
 		reducedWidth = m.getAveReducedWidth(lineWidth)
 	}
-	newComponents := reduceWidth(components, reducedWidth)
+	m.debug = "line width:" + strconv.Itoa(lineWidth) + " reducedWidth: " + strconv.Itoa(reducedWidth)
+	newComponents := m.reduceWidth(components, reducedWidth)
 	renderedLine = renderTreeComponents(newComponents, styles)
 
 	b.WriteString(renderedLine)
@@ -492,7 +493,8 @@ func (m Model) debugView() string {
 	// 	"\n" + strconv.Itoa(len(m.subMsgs.ylen))
 	// 	"\n" + strconv.Itoa(count)
 	return "last: " + lastMode + " current: " + s + "\n" + nodePath + "\n" +
-		m.debug
+		"vp width: " + strconv.Itoa(m.viewport.Width) + " " + m.debug + "\n" +
+		"X in line:" + strconv.Itoa(m.getTotalXInLine())
 	// "PreSelectedTree.x:" + strconv.Itoa(m.preSelectedTree.x) + " PreSelectedTree.y:" + strconv.Itoa(m.preSelectedTree.y) + "\n" +
 	// "PreSelectedTree: " + preStr + "\n" +
 	// "posiX: " + strconv.Itoa(posiX) + "posiY: " + strconv.Itoa(posiY) + "\n" +
